@@ -1,4 +1,7 @@
-# ChatpateGane
+# project
+deployed url (https://chatpate-gane.onrender.com).
+
+# AngularUI
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.4.
 
