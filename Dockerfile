@@ -27,7 +27,7 @@ COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
 
 # IMPORTANT:
 # Replace "angular-ui" with your actual dist folder name
-COPY --from=build /app/dist/Angular-UI/browser /usr/share/nginx/html
+COPY --from=build /app/dist/chatpate-gane/browser /usr/share/nginx/html
 
 EXPOSE 80
 
