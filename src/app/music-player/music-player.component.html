@@ -11,7 +11,8 @@
     <div class="menu-title">YOUR LIBRARY</div>
 
     <div class="menu-item active">
-      <span>♫</span> All Songs
+      <span>♫</span>
+      All Songs
     </div>
 
     <div class="library-count">{{ songs.length }} tracks</div>
@@ -40,7 +41,7 @@
     <section class="hero">
       <div class="hero-content">
         <span class="hero-label">YOUR MUSIC COLLECTION</span>
-        <h2>Feel the Music.<br>Live the Moment.</h2>
+        <h2>Feel the Music.<br />Live the Moment.</h2>
         <p>Enjoy your favourite songs anytime, anywhere.</p>
 
         <button
@@ -58,32 +59,30 @@
     <!-- Playback Settings -->
     <section class="settings-section">
 
-      <div class="settings-header">
+      <div class="settings-title">
         <div>
-          <span class="settings-label">PERSONALIZE</span>
           <h2>Playback Settings</h2>
-          <p>Control how your music plays.</p>
+          <p>Customize your listening experience</p>
         </div>
-
-        <span class="settings-header-icon">⚙</span>
+        <span class="settings-title-icon">⚙</span>
       </div>
 
       <div class="settings-grid">
 
-        <!-- Skip Intro -->
+        <!-- Skip Intro Card -->
         <div class="setting-card">
-          <div class="setting-top">
-            <div class="setting-icon green-icon">⏩</div>
-            <span class="setting-status">ACTIVE</span>
+
+          <div class="setting-card-top">
+            <div class="setting-icon skip-intro-icon">⏭</div>
+
+            <div class="setting-info">
+              <strong>Skip Intro</strong>
+              <small>Automatically skip the beginning</small>
+            </div>
           </div>
 
-          <div class="setting-content">
-            <h3>Skip Intro</h3>
-            <p>Automatically skip the beginning of every song.</p>
-          </div>
-
-          <div class="setting-bottom">
-            <span>Skip duration</span>
+          <div class="setting-card-bottom">
+            <span class="setting-label">Skip duration</span>
 
             <select
               class="setting-select"
@@ -92,29 +91,30 @@
               aria-label="Skip intro duration"
             >
               <option [ngValue]="0">Off</option>
-              <option [ngValue]="5">5 sec</option>
-              <option [ngValue]="10">10 sec</option>
-              <option [ngValue]="15">15 sec</option>
-              <option [ngValue]="20">20 sec</option>
-              <option [ngValue]="30">30 sec</option>
+              <option [ngValue]="5">5 seconds</option>
+              <option [ngValue]="10">10 seconds</option>
+              <option [ngValue]="15">15 seconds</option>
+              <option [ngValue]="20">20 seconds</option>
+              <option [ngValue]="30">30 seconds</option>
             </select>
           </div>
+
         </div>
 
-        <!-- Auto Next -->
+        <!-- Auto Next Card -->
         <div class="setting-card">
-          <div class="setting-top">
-            <div class="setting-icon blue-icon">⏭</div>
-            <span class="setting-status">SMART PLAY</span>
+
+          <div class="setting-card-top">
+            <div class="setting-icon auto-next-icon">◷</div>
+
+            <div class="setting-info">
+              <strong>Auto Next</strong>
+              <small>Automatically play the next song</small>
+            </div>
           </div>
 
-          <div class="setting-content">
-            <h3>Auto Next</h3>
-            <p>Automatically play the next song after your selected duration.</p>
-          </div>
-
-          <div class="setting-bottom">
-            <span>Play duration</span>
+          <div class="setting-card-bottom">
+            <span class="setting-label">Play duration</span>
 
             <select
               class="setting-select"
@@ -123,27 +123,34 @@
               aria-label="Auto next duration"
             >
               <option [ngValue]="0">Full song</option>
-              <option [ngValue]="30">30 sec</option>
-              <option [ngValue]="60">1 min</option>
-              <option [ngValue]="120">2 min</option>
-              <option [ngValue]="180">3 min</option>
-              <option [ngValue]="300">5 min</option>
+              <option [ngValue]="30">30 seconds</option>
+              <option [ngValue]="60">1 minute</option>
+              <option [ngValue]="120">2 minutes</option>
+              <option [ngValue]="180">3 minutes</option>
+              <option [ngValue]="300">5 minutes</option>
             </select>
           </div>
+
         </div>
 
       </div>
 
-      <div class="settings-footer">
-        <span class="footer-dot"></span>
+      <div class="settings-status">
+        <span class="status-dot"></span>
         <span>
-          Intro: <strong>{{ skipIntroSeconds === 0 ? 'Off' : skipIntroSeconds + ' sec' }}</strong>
+          Intro:
+          <strong>
+            {{ skipIntroSeconds === 0 ? 'Off' : skipIntroSeconds + ' sec' }}
+          </strong>
         </span>
 
-        <span class="footer-divider">|</span>
+        <span class="status-divider">|</span>
 
         <span>
-          Auto Next: <strong>{{ autoNextDuration === 0 ? 'Full song' : formatTime(autoNextDuration) }}</strong>
+          Auto Next:
+          <strong>
+            {{ autoNextDuration === 0 ? 'Full song' : formatTime(autoNextDuration) }}
+          </strong>
         </span>
       </div>
 
@@ -153,12 +160,8 @@
     <section class="songs-section">
 
       <div class="section-heading">
-        <div>
-          <h2>All Songs</h2>
-          <p>Your complete music collection</p>
-        </div>
-
-        <span class="track-count">{{ filteredSongs.length }} tracks</span>
+        <h2>All Songs</h2>
+        <span>{{ filteredSongs.length }} tracks</span>
       </div>
 
       <div class="song-header">
@@ -174,14 +177,25 @@
         [class.selected]="currentSong?.id === song.id"
         (click)="playSong(song)"
       >
+
         <span class="song-number">
-          <span *ngIf="currentSong?.id !== song.id || !isPlaying">{{ i + 1 }}</span>
-          <span class="playing-indicator" *ngIf="currentSong?.id === song.id && isPlaying">♫</span>
+          <span *ngIf="currentSong?.id !== song.id || !isPlaying">
+            {{ i + 1 }}
+          </span>
+
+          <span
+            class="playing-indicator"
+            *ngIf="currentSong?.id === song.id && isPlaying"
+          >
+            ♪
+          </span>
         </span>
 
         <div class="song-name">
           <strong>{{ song.title }}</strong>
-          <small *ngIf="currentSong?.id === song.id && isPlaying">Now Playing</small>
+          <small *ngIf="currentSong?.id === song.id && isPlaying">
+            Now Playing
+          </small>
         </div>
 
         <span class="artist-name">{{ song.artist }}</span>
@@ -193,8 +207,10 @@
         >
           {{ currentSong?.id === song.id && isPlaying ? 'Ⅱ' : '▶' }}
         </button>
+
       </div>
 
+      <!-- Empty State -->
       <div class="empty-state" *ngIf="filteredSongs.length === 0">
         <div class="empty-icon">♫</div>
         <h3>No songs found</h3>
@@ -222,6 +238,7 @@
       </div>
     </div>
 
+    <!-- Controls -->
     <div class="player-controls">
 
       <div class="control-buttons">
@@ -230,14 +247,11 @@
           [class.active-control]="isShuffle"
           (click)="toggleShuffle()"
           title="Shuffle"
-          aria-label="Shuffle"
-        >⤨</button>
+        >
+          ⤨
+        </button>
 
-        <button
-          (click)="previousSong()"
-          title="Previous"
-          aria-label="Previous song"
-        >|◀</button>
+        <button (click)="previousSong()" title="Previous">|◀</button>
 
         <button
           class="main-play"
@@ -248,23 +262,19 @@
           {{ isPlaying ? 'Ⅱ' : '▶' }}
         </button>
 
-        <button
-          (click)="nextSong()"
-          title="Next"
-          aria-label="Next song"
-        >▶|</button>
+        <button (click)="nextSong()" title="Next">▶|</button>
 
         <button
           [class.active-control]="repeatMode !== 'off'"
           (click)="toggleRepeat()"
           title="Repeat"
-          aria-label="Repeat"
         >
           {{ repeatMode === 'one' ? '🔂' : '↻' }}
         </button>
 
       </div>
 
+      <!-- Progress -->
       <div class="progress-container">
         <span>{{ formatTime(currentTime) }}</span>
 
@@ -283,6 +293,7 @@
 
     </div>
 
+    <!-- Volume -->
     <div class="volume-container">
       <span>🔊</span>
 
