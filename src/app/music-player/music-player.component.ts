@@ -3,8 +3,6 @@ import {
   Component,
   ElementRef,
   ViewChild,
-  AfterViewInit,
-  OnInit,
   OnDestroy
 } from '@angular/core';
 
@@ -26,18 +24,19 @@ import {
   templateUrl: './music-player.component.html',
   styleUrls: ['./music-player.component.css']
 })
-export class MusicPlayerComponent
-  implements OnInit, AfterViewInit, OnDestroy {
+export class MusicPlayerComponent implements OnDestroy {
 
   @ViewChild('audioPlayer')
   audioPlayer!: ElementRef<HTMLAudioElement>;
 
+  // Music library
   songs: Song[] = [...MUSIC_LIBRARY];
 
   filteredSongs: Song[] = [...MUSIC_LIBRARY];
 
   currentSong: Song | null = null;
 
+  // Player states
   isPlaying = false;
   isShuffle = false;
 
@@ -50,26 +49,44 @@ export class MusicPlayerComponent
   volume = 0.8;
 
   errorMessage = '';
-
   autoplayBlocked = false;
 
+  // =====================================
+  // SKIP INTRO SETTINGS
+  // =====================================
+
+  // 0 = Off
+  // 5 = 5 seconds
+  // 10 = 10 seconds
+  // 15 = 15 seconds
+  // 30 = 30 seconds
+
+  skipIntroSeconds = 5;
+
+  // =====================================
+  // AUTO NEXT SETTINGS
+  // =====================================
+
+  // 0 = Full Song
+  // 30 = 30 seconds
+  // 60 = 1 minute
+  // 120 = 2 minutes
+  // 180 = 3 minutes
+  // 300 = 5 minutes
+
+  autoNextDuration = 0;
+
+  // Position at which current playback started
+  private currentSongStartTime = 0;
+
+  // Prevent duplicate next-song operations
+  private isAdvancing = false;
+
+  // Prevent outdated song loading operations
+  private loadRequestId = 0;
+
+  // Prevent operations after destruction
   private destroyed = false;
-
-  ngOnInit(): void {
-    // Prepare initial song selection.
-    // Actual autoplay is attempted after the audio element initializes.
-  }
-
-  ngAfterViewInit(): void {
-
-    const audio = this.audioPlayer.nativeElement;
-
-    audio.volume = this.volume;
-
-    // Attempt autoplay after component initialization.
-    this.autoPlayMusic();
-
-  }
 
   // Current song index
   get currentIndex(): number {
@@ -80,7 +97,10 @@ export class MusicPlayerComponent
 
   }
 
-  // Search
+  // =====================================
+  // SEARCH SONGS
+  // =====================================
+
   filterSongs(): void {
 
     const search = this.searchText
@@ -94,33 +114,79 @@ export class MusicPlayerComponent
 
   }
 
-  // Automatic playback attempt
-  async autoPlayMusic(): Promise<void> {
+  // =====================================
+  // WAIT FOR AUDIO METADATA
+  // =====================================
 
-    if (!this.songs.length || this.destroyed) return;
+  private waitForMetadata(
+    audio: HTMLAudioElement
+  ): Promise<void> {
 
-    let song: Song;
+    if (
+      audio.readyState >= HTMLMediaElement.HAVE_METADATA
+    ) {
 
-    if (this.isShuffle && this.songs.length > 1) {
-
-      const index = Math.floor(
-        Math.random() * this.songs.length
-      );
-
-      song = this.songs[index];
-
-    } else {
-
-      song = this.songs[0];
+      return Promise.resolve();
 
     }
 
-    await this.playSong(song);
+    return new Promise((resolve, reject) => {
+
+      const cleanup = () => {
+
+        audio.removeEventListener(
+          'loadedmetadata',
+          onLoaded
+        );
+
+        audio.removeEventListener(
+          'error',
+          onError
+        );
+
+      };
+
+      const onLoaded = () => {
+
+        cleanup();
+
+        resolve();
+
+      };
+
+      const onError = () => {
+
+        cleanup();
+
+        reject(
+          new Error('Unable to load MP3 file.')
+        );
+
+      };
+
+      audio.addEventListener(
+        'loadedmetadata',
+        onLoaded,
+        { once: true }
+      );
+
+      audio.addEventListener(
+        'error',
+        onError,
+        { once: true }
+      );
+
+    });
 
   }
 
-  // Play selected song
+  // =====================================
+  // PLAY SELECTED SONG
+  // =====================================
+
   async playSong(song: Song): Promise<void> {
+
+    if (this.destroyed) return;
 
     if (!song || !song.url) {
 
@@ -132,46 +198,101 @@ export class MusicPlayerComponent
 
     const audio = this.audioPlayer.nativeElement;
 
+    const requestId = ++this.loadRequestId;
+
+    audio.pause();
+
     this.currentSong = song;
 
     this.currentTime = 0;
 
     this.duration = 0;
 
+    this.currentSongStartTime = 0;
+
     this.errorMessage = '';
 
     this.autoplayBlocked = false;
 
-    audio.pause();
-
+    // Set song source
     audio.src = song.url;
 
     audio.volume = this.volume;
+
+    const metadataPromise = this.waitForMetadata(audio);
 
     audio.load();
 
     try {
 
+      // Wait until MP3 metadata is ready
+      await metadataPromise;
+
+      // Ignore outdated requests
+      if (
+        this.destroyed ||
+        requestId !== this.loadRequestId
+      ) {
+        return;
+      }
+
+      this.duration = Number.isFinite(audio.duration)
+        ? audio.duration
+        : 0;
+
+      // Calculate intro skip
+      const skipTime = Math.min(
+        this.skipIntroSeconds,
+        Math.max(0, audio.duration - 0.5)
+      );
+
+      // Start song after selected intro duration
+      audio.currentTime = skipTime;
+
+      this.currentTime = skipTime;
+
+      // Store actual starting position
+      this.currentSongStartTime = skipTime;
+
+      // Start playback
       await audio.play();
+
+      if (
+        this.destroyed ||
+        requestId !== this.loadRequestId
+      ) {
+
+        audio.pause();
+
+        return;
+
+      }
 
       this.isPlaying = true;
 
     } catch (error) {
 
-      console.warn('Autoplay or playback blocked:', error);
+      if (requestId !== this.loadRequestId) {
+        return;
+      }
+
+      console.error('Playback failed:', error);
 
       this.isPlaying = false;
 
       this.autoplayBlocked = true;
 
       this.errorMessage =
-        'Playback requires your interaction. Tap Play Music.';
+        'Unable to play audio. Check your MP3 file path.';
 
     }
 
   }
 
-  // Hero button
+  // =====================================
+  // HERO PLAY BUTTON
+  // =====================================
+
   async playMusic(): Promise<void> {
 
     if (!this.songs.length) return;
@@ -186,7 +307,7 @@ export class MusicPlayerComponent
 
     if (!this.currentSong) {
 
-      await this.autoPlayMusic();
+      await this.playSong(this.songs[0]);
 
       return;
 
@@ -196,14 +317,21 @@ export class MusicPlayerComponent
 
   }
 
-  // Play / Pause
+  // =====================================
+  // PLAY / PAUSE
+  // =====================================
+
   async togglePlay(): Promise<void> {
 
     const audio = this.audioPlayer.nativeElement;
 
     if (!this.currentSong) {
 
-      await this.autoPlayMusic();
+      if (this.songs.length) {
+
+        await this.playSong(this.songs[0]);
+
+      }
 
       return;
 
@@ -238,87 +366,121 @@ export class MusicPlayerComponent
 
       audio.pause();
 
-      this.isPlaying = false;
+    }
+
+  }
+
+  // =====================================
+  // SHUFFLE
+  // =====================================
+
+  async toggleShuffle(): Promise<void> {
+
+    this.isShuffle = !this.isShuffle;
+
+    if (
+      this.isShuffle &&
+      this.songs.length > 1 &&
+      this.currentSong
+    ) {
+
+      await this.nextSong();
 
     }
 
   }
 
-  // Shuffle
-  async toggleShuffle(): Promise<void> {
+  // =====================================
+  // NEXT SONG
+  // =====================================
 
-    this.isShuffle = !this.isShuffle;
+  async nextSong(): Promise<void> {
 
-    if (!this.isShuffle || !this.songs.length) return;
-
-    if (this.songs.length === 1) {
-
-      if (!this.currentSong) {
-        await this.playSong(this.songs[0]);
-      }
+    if (
+      !this.songs.length ||
+      this.isAdvancing ||
+      this.destroyed
+    ) {
 
       return;
 
     }
 
-    const availableSongs = this.songs.filter(
-      song => song.id !== this.currentSong?.id
-    );
+    this.isAdvancing = true;
 
-    const randomSong = availableSongs[
-      Math.floor(Math.random() * availableSongs.length)
-    ];
+    try {
 
-    await this.playSong(randomSong);
+      let nextIndex: number;
 
-  }
+      // Shuffle enabled
+      if (
+        this.isShuffle &&
+        this.songs.length > 1
+      ) {
 
-  // Next song
-  async nextSong(): Promise<void> {
+        const availableSongs = this.songs.filter(
+          song => song.id !== this.currentSong?.id
+        );
 
-    if (!this.songs.length) return;
+        const randomSong = availableSongs[
+          Math.floor(
+            Math.random() * availableSongs.length
+          )
+        ];
 
-    let nextIndex: number;
+        nextIndex = this.songs.indexOf(randomSong);
 
-    if (this.isShuffle && this.songs.length > 1) {
+      } else {
 
-      const availableSongs = this.songs.filter(
-        song => song.id !== this.currentSong?.id
-      );
+        // Normal next song
+        nextIndex = this.currentIndex + 1;
 
-      const randomSong = availableSongs[
-        Math.floor(Math.random() * availableSongs.length)
-      ];
+        // Reached last song
+        if (nextIndex >= this.songs.length) {
 
-      nextIndex = this.songs.indexOf(randomSong);
+          // Repeat all songs
+          if (this.repeatMode === 'all') {
 
-    } else {
+            nextIndex = 0;
 
-      nextIndex = this.currentIndex + 1;
+          } else {
 
-      if (nextIndex >= this.songs.length) {
+            // IMPORTANT FIX:
+            // Stop audio when playlist finishes.
 
-        if (this.repeatMode === 'all') {
+            const audio = this.audioPlayer.nativeElement;
 
-          nextIndex = 0;
+            audio.pause();
 
-        } else {
+            this.isPlaying = false;
 
-          this.isPlaying = false;
+            this.currentTime = 0;
 
-          return;
+            return;
+
+          }
 
         }
 
       }
 
-    }
+      // Play next song
+      await this.playSong(
+        this.songs[nextIndex]
+      );
 
-    await this.playSong(this.songs[nextIndex]);
+    } finally {
+
+      this.isAdvancing = false;
+
+    }
 
   }
 
-  // Previous song
+  // =====================================
+  // PREVIOUS SONG
+  // =====================================
+
   async previousSong(): Promise<void> {
 
     if (!this.songs.length) return;
@@ -327,7 +489,16 @@ export class MusicPlayerComponent
 
     if (audio.currentTime > 3) {
 
-      audio.currentTime = 0;
+      const target = Math.min(
+        this.skipIntroSeconds,
+        Math.max(0, audio.duration - 0.5)
+      );
+
+      audio.currentTime = target;
+
+      this.currentTime = target;
+
+      this.currentSongStartTime = target;
 
       return;
 
@@ -343,40 +514,150 @@ export class MusicPlayerComponent
 
     }
 
-    await this.playSong(this.songs[previousIndex]);
+    await this.playSong(
+      this.songs[previousIndex]
+    );
 
   }
 
-  // Ended event
-  async onSongEnded(): Promise<void> {
+  // =====================================
+  // SKIP INTRO
+  // =====================================
 
-    if (this.repeatMode === 'one' && this.currentSong) {
+  applyIntroSkip(): void {
 
-      const audio = this.audioPlayer.nativeElement;
+    if (this.destroyed) return;
 
-      audio.currentTime = 0;
+    const audio = this.audioPlayer.nativeElement;
 
-      try {
-
-        await audio.play();
-
-      } catch (error) {
-
-        console.error(error);
-
-        this.isPlaying = false;
-
-      }
+    if (
+      !this.currentSong ||
+      audio.readyState < HTMLMediaElement.HAVE_METADATA
+    ) {
 
       return;
 
     }
 
+    // Change position only if still inside intro
+    if (
+      audio.currentTime < this.skipIntroSeconds
+    ) {
+
+      const target = Math.min(
+        this.skipIntroSeconds,
+        Math.max(0, audio.duration - 0.5)
+      );
+
+      audio.currentTime = target;
+
+      this.currentTime = target;
+
+      this.currentSongStartTime = target;
+
+    }
+
+  }
+
+  // =====================================
+  // AUTO NEXT
+  // =====================================
+
+  applyAutoNext(): void {
+
+    if (this.destroyed) return;
+
+    if (
+      this.autoNextDuration > 0 &&
+      this.isPlaying &&
+      this.currentSong
+    ) {
+
+      const audio = this.audioPlayer.nativeElement;
+
+      const nextPosition =
+        this.currentSongStartTime +
+        this.autoNextDuration;
+
+      if (audio.currentTime >= nextPosition) {
+
+        void this.nextSong();
+
+      }
+
+    }
+
+  }
+
+  // =====================================
+  // AUDIO TIME UPDATE
+  // =====================================
+
+  onAudioTimeUpdate(): void {
+
+    const audio = this.audioPlayer.nativeElement;
+
+    this.currentTime = audio.currentTime;
+
+    // Auto Next disabled
+    if (
+      this.autoNextDuration <= 0 ||
+      !this.isPlaying ||
+      this.isAdvancing ||
+      !this.currentSong
+    ) {
+
+      return;
+
+    }
+
+    // Calculate next song position
+    const nextPosition =
+      this.currentSongStartTime +
+      this.autoNextDuration;
+
+    // Automatically move to next song
+    if (
+      audio.currentTime >= nextPosition
+    ) {
+
+      void this.nextSong();
+
+    }
+
+  }
+
+  // =====================================
+  // SONG ENDED
+  // =====================================
+
+  async onSongEnded(): Promise<void> {
+
+    if (this.destroyed) return;
+
+    // Repeat current song
+    if (
+      this.repeatMode === 'one' &&
+      this.currentSong
+    ) {
+
+      await this.playSong(
+        this.currentSong
+      );
+
+      return;
+
+    }
+
+    // Automatically play next song
     await this.nextSong();
 
   }
 
-  // Repeat
+  // =====================================
+  // REPEAT
+  // =====================================
+
   toggleRepeat(): void {
 
     if (this.repeatMode === 'off') {
@@ -395,7 +676,10 @@ export class MusicPlayerComponent
 
   }
 
-  // Audio play event
+  // =====================================
+  // AUDIO PLAY EVENT
+  // =====================================
+
   onAudioPlay(): void {
 
     this.isPlaying = true;
@@ -404,22 +688,20 @@ export class MusicPlayerComponent
 
   }
 
-  // Audio pause event
+  // =====================================
+  // AUDIO PAUSE EVENT
+  // =====================================
+
   onAudioPause(): void {
 
     this.isPlaying = false;
 
   }
 
-  // Time update
-  updateTime(): void {
+  // =====================================
+  // UPDATE DURATION
+  // =====================================
 
-    this.currentTime =
-      this.audioPlayer.nativeElement.currentTime;
-
-  }
-
-  // Duration update
   updateDuration(): void {
 
     const audio = this.audioPlayer.nativeElement;
@@ -430,7 +712,10 @@ export class MusicPlayerComponent
 
   }
 
-  // Seek
+  // =====================================
+  // SEEK
+  // =====================================
+
   seek(event: Event): void {
 
     const input = event.target as HTMLInputElement;
@@ -445,18 +730,25 @@ export class MusicPlayerComponent
 
   }
 
-  // Volume
+  // =====================================
+  // VOLUME
+  // =====================================
+
   changeVolume(event: Event): void {
 
     const input = event.target as HTMLInputElement;
 
     this.volume = Number(input.value);
 
-    this.audioPlayer.nativeElement.volume = this.volume;
+    this.audioPlayer.nativeElement.volume =
+      this.volume;
 
   }
 
-  // Audio error
+  // =====================================
+  // AUDIO ERROR
+  // =====================================
+
   onAudioError(): void {
 
     const audio = this.audioPlayer.nativeElement;
@@ -464,9 +756,13 @@ export class MusicPlayerComponent
     if (!audio.error) return;
 
     console.error('Audio error:', {
+
       source: audio.currentSrc,
+
       code: audio.error.code,
+
       message: audio.error.message
+
     });
 
     this.isPlaying = false;
@@ -476,14 +772,22 @@ export class MusicPlayerComponent
 
   }
 
-  // Format time
+  // =====================================
+  // FORMAT TIME
+  // =====================================
+
   formatTime(seconds: number): string {
 
-    if (!Number.isFinite(seconds)) return '0:00';
+    if (!Number.isFinite(seconds)) {
+
+      return '0:00';
+
+    }
 
     const minutes = Math.floor(seconds / 60);
 
-    const remainingSeconds = Math.floor(seconds % 60);
+    const remainingSeconds =
+      Math.floor(seconds % 60);
 
     return `${minutes}:${remainingSeconds
       .toString()
@@ -491,17 +795,25 @@ export class MusicPlayerComponent
 
   }
 
-  // Track by ID
+  // =====================================
+  // TRACK BY ID
+  // =====================================
+
   trackById(index: number, song: Song): number {
 
     return song.id;
 
   }
 
-  // Cleanup
+  // =====================================
+  // CLEANUP
+  // =====================================
+
   ngOnDestroy(): void {
 
     this.destroyed = true;
+
+    this.loadRequestId++;
 
     if (this.audioPlayer?.nativeElement) {
 
