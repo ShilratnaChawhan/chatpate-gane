@@ -22,7 +22,7 @@
 
   </aside>
 
-  <!-- Main -->
+  <!-- Main Content -->
   <main class="main-content">
 
     <header class="top-header">
@@ -74,12 +74,99 @@
 
     </section>
 
+    <!-- Playback Settings -->
+    <section class="playback-settings">
+
+      <div class="settings-heading">
+        <div>
+          <h3>Playback Settings</h3>
+          <p>Customize your listening experience.</p>
+        </div>
+
+        <span class="settings-icon">⚙</span>
+      </div>
+
+      <div class="settings-grid">
+
+        <!-- Skip Intro -->
+        <div class="setting-card">
+
+          <label for="introSkip">⏩ Skip Song Intro</label>
+
+          <select
+            id="introSkip"
+            [(ngModel)]="skipIntroSeconds"
+            (ngModelChange)="applyIntroSkip()"
+          >
+            <option [ngValue]="0">Off - 0 sec</option>
+            <option [ngValue]="5">5 Seconds</option>
+            <option [ngValue]="10">10 Seconds</option>
+            <option [ngValue]="15">15 Seconds</option>
+            <option [ngValue]="20">20 Seconds</option>
+            <option [ngValue]="30">30 Seconds</option>
+          </select>
+
+          <small>Skip the beginning of every song.</small>
+
+        </div>
+
+        <!-- Auto Next -->
+        <div class="setting-card">
+
+          <label for="autoNext">⏭ Automatic Next Song</label>
+
+          <select
+            id="autoNext"
+            [(ngModel)]="autoNextDuration"
+            (ngModelChange)="applyAutoNext()"
+          >
+            <option [ngValue]="0">Full Song</option>
+            <option [ngValue]="30">30 Seconds</option>
+            <option [ngValue]="60">1 Minute</option>
+            <option [ngValue]="120">2 Minutes</option>
+            <option [ngValue]="180">3 Minutes</option>
+            <option [ngValue]="300">5 Minutes</option>
+          </select>
+
+          <small>
+            Automatically play the next song after selected duration.
+          </small>
+
+        </div>
+
+      </div>
+
+      <div class="settings-status">
+
+        <span>
+          Intro Skip:
+          <strong>
+            {{ skipIntroSeconds }} sec
+          </strong>
+        </span>
+
+        <span>
+          Auto Next:
+          <strong>
+            {{ autoNextDuration === 0
+              ? 'Full Song'
+              : formatTime(autoNextDuration) }}
+          </strong>
+        </span>
+
+      </div>
+
+    </section>
+
     <!-- Songs -->
     <section class="songs-section">
 
       <div class="section-heading">
+
         <h2>All Songs</h2>
+
         <span>{{ filteredSongs.length }} tracks</span>
+
       </div>
 
       <div class="song-header">
@@ -101,8 +188,11 @@
         </span>
 
         <div class="song-name">
+
           <strong>{{ song.title }}</strong>
+
           <small>{{ song.artist }}</small>
+
         </div>
 
         <span class="artist-name">
@@ -138,6 +228,7 @@
   <!-- Bottom Player -->
   <footer class="player-bar">
 
+    <!-- Current Song -->
     <div class="now-playing">
 
       <div class="music-icon">♫</div>
@@ -156,6 +247,7 @@
 
     </div>
 
+    <!-- Controls -->
     <div class="player-controls">
 
       <div class="control-buttons">
@@ -200,6 +292,7 @@
 
       </div>
 
+      <!-- Progress -->
       <div class="progress-container">
 
         <span>{{ formatTime(currentTime) }}</span>
@@ -219,6 +312,7 @@
 
     </div>
 
+    <!-- Volume -->
     <div class="volume-container">
 
       <span>🔊</span>
@@ -240,7 +334,7 @@
   <audio
     #audioPlayer
     preload="auto"
-    (timeupdate)="updateTime()"
+    (timeupdate)="onAudioTimeUpdate()"
     (loadedmetadata)="updateDuration()"
     (ended)="onSongEnded()"
     (play)="onAudioPlay()"
