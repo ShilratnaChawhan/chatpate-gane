@@ -1,5 +1,5 @@
 # project
-deployed url (https://chatpate-gane.onrender.com).
+deployed url (https://chatpategane.netlify.app).
 
 # AngularUI
 
