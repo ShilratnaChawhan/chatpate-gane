@@ -17,6 +17,7 @@
   background: #101010;
 }
 
+/* Sidebar */
 .sidebar {
   position: fixed;
   top: 0;
@@ -69,6 +70,7 @@
   font-size: 12px;
 }
 
+/* Main content */
 .main-content {
   margin-left: 230px;
   padding: 35px 45px;
@@ -105,6 +107,7 @@
   border-color: #1ed760;
 }
 
+/* Hero section */
 .hero {
   margin-top: 35px;
   padding: 38px;
@@ -155,6 +158,86 @@
   padding-right: 35px;
 }
 
+/* Playback settings - Skip Intro and Auto Next */
+.playback-settings {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 28px;
+}
+
+.setting-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  background: #191919;
+  border: 1px solid #303030;
+  border-radius: 12px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.setting-card:hover {
+  border-color: #444;
+  background: #1d1d1d;
+}
+
+.setting-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.setting-icon {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 9px;
+  background: #173b28;
+  color: #1ed760;
+  font-size: 18px;
+}
+
+.setting-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.setting-info strong {
+  color: #fff;
+  font-size: 14px;
+}
+
+.setting-info small {
+  color: #888;
+  font-size: 11px;
+}
+
+.setting-card select {
+  width: 100%;
+  padding: 11px 13px;
+  color: #fff;
+  background: #292929;
+  border: 1px solid #404040;
+  border-radius: 7px;
+  outline: none;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.setting-card select:focus {
+  border-color: #1ed760;
+}
+
+.setting-card select option {
+  color: #fff;
+  background: #222;
+}
+
+/* Songs section */
 .songs-section {
   margin-top: 40px;
 }
@@ -245,6 +328,7 @@
   color: #888;
 }
 
+/* Bottom player */
 .player-bar {
   position: fixed;
   z-index: 10;
@@ -277,6 +361,7 @@
   background: #244f36;
   color: #1ed760;
   font-size: 26px;
+  flex-shrink: 0;
 }
 
 .now-playing-text {
@@ -302,6 +387,7 @@
   color: #999;
 }
 
+/* Player controls */
 .player-controls {
   display: flex;
   flex-direction: column;
@@ -321,11 +407,16 @@
   color: #aaa;
   font-size: 18px;
   cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
 .control-buttons button:hover,
 .control-buttons .active-control {
   color: #1ed760;
+}
+
+.control-buttons button:hover {
+  transform: scale(1.1);
 }
 
 .control-buttons .main-play {
@@ -337,6 +428,12 @@
   font-size: 15px;
 }
 
+.control-buttons .main-play:hover {
+  background: #1ed760;
+  color: #000;
+}
+
+/* Progress bar */
 .progress-container {
   width: 100%;
   display: flex;
@@ -348,6 +445,7 @@
 
 .progress-bar {
   flex: 1;
+  min-width: 0;
 }
 
 input[type="range"] {
@@ -355,6 +453,7 @@ input[type="range"] {
   cursor: pointer;
 }
 
+/* Volume */
 .volume-container {
   display: flex;
   justify-content: flex-end;
@@ -366,6 +465,7 @@ input[type="range"] {
   width: 100px;
 }
 
+/* Error message */
 .error-message {
   margin-top: 20px;
   color: #ff7777;
@@ -376,6 +476,7 @@ audio {
   display: none;
 }
 
+/* Tablet responsive */
 @media (max-width: 850px) {
   .sidebar {
     display: none;
@@ -403,12 +504,21 @@ audio {
     font-size: 80px;
     padding: 0;
   }
+
+  .playback-settings {
+    gap: 12px;
+  }
 }
 
+/* Mobile responsive */
 @media (max-width: 550px) {
   .top-header {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .top-header h1 {
+    font-size: 25px;
   }
 
   .search-input {
@@ -428,10 +538,24 @@ audio {
   .player-bar {
     grid-template-columns: 1fr;
     height: 125px;
+    gap: 5px;
+    padding: 8px 12px;
   }
 
   .now-playing {
     justify-content: center;
+  }
+
+  .player-controls {
+    gap: 5px;
+  }
+
+  .control-buttons {
+    gap: 25px;
+  }
+
+  .progress-container {
+    gap: 7px;
   }
 
   .music-app {
@@ -440,9 +564,37 @@ audio {
 
   .hero {
     padding: 25px;
+    min-height: 220px;
+  }
+
+  .hero h2 {
+    font-size: 25px;
   }
 
   .hero-note {
     display: none;
+  }
+
+  /* Stack Skip Intro and Auto Next vertically on mobile */
+  .playback-settings {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .setting-card {
+    padding: 15px;
+  }
+
+  .setting-card select {
+    padding: 12px;
+  }
+
+  .songs-section {
+    margin-top: 30px;
+  }
+
+  .section-heading h2 {
+    font-size: 19px;
   }
 }
