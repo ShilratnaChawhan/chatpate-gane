@@ -1,6 +1,7 @@
 
 <div class="music-app">
 
+  <!-- Sidebar -->
   <aside class="sidebar">
     <div class="brand">
       <span class="brand-icon">♫</span>
@@ -19,6 +20,7 @@
     </div>
   </aside>
 
+  <!-- Main Content -->
   <main class="main-content">
 
     <header class="top-header">
@@ -36,6 +38,7 @@
       />
     </header>
 
+    <!-- Hero -->
     <section class="hero">
       <div>
         <span class="hero-label">YOUR COLLECTION</span>
@@ -46,7 +49,7 @@
 
         <button
           class="hero-button"
-          (click)="currentSong ? togglePlay() : playSong(songs[0])"
+          (click)="playMusic()"
           [disabled]="songs.length === 0"
         >
           {{ isPlaying ? 'Ⅱ Pause' : '▶ Play Music' }}
@@ -56,6 +59,7 @@
       <div class="hero-note">♫</div>
     </section>
 
+    <!-- Songs -->
     <section class="songs-section">
 
       <div class="section-heading">
@@ -76,6 +80,7 @@
         [class.selected]="currentSong?.id === song.id"
         (click)="playSong(song)"
       >
+
         <span class="song-number">
           {{ currentSong?.id === song.id && isPlaying ? '♫' : i + 1 }}
         </span>
@@ -85,7 +90,9 @@
           <small>{{ song.artist }}</small>
         </div>
 
-        <span class="artist-name">{{ song.artist }}</span>
+        <span class="artist-name">
+          {{ song.artist }}
+        </span>
 
         <button
           class="row-play"
@@ -94,6 +101,7 @@
         >
           ▶
         </button>
+
       </div>
 
       <div
@@ -101,20 +109,23 @@
         *ngIf="filteredSongs.length === 0"
       >
         No songs found.
-        <p>Add MP3 files to src/assets/music.</p>
+        <p>Check your search or music library.</p>
       </div>
 
     </section>
 
+    <!-- Error -->
     <div class="error-message" *ngIf="errorMessage">
       {{ errorMessage }}
     </div>
 
   </main>
 
+  <!-- Bottom Player -->
   <footer class="player-bar">
 
     <div class="now-playing">
+
       <div class="music-icon">♫</div>
 
       <div class="now-playing-text">
@@ -126,23 +137,31 @@
           {{ currentSong?.artist || 'No song playing' }}
         </small>
       </div>
+
     </div>
 
     <div class="player-controls">
 
       <div class="control-buttons">
 
+        <!-- Shuffle -->
         <button
           [class.active-control]="isShuffle"
           (click)="toggleShuffle()"
           title="Shuffle"
-        >⤨</button>
+        >
+          ⤨
+        </button>
 
+        <!-- Previous -->
         <button
           (click)="previousSong()"
           title="Previous"
-        >|◀</button>
+        >
+          |◀
+        </button>
 
+        <!-- Play/Pause -->
         <button
           class="main-play"
           (click)="togglePlay()"
@@ -151,11 +170,15 @@
           {{ isPlaying ? 'Ⅱ' : '▶' }}
         </button>
 
+        <!-- Next -->
         <button
           (click)="nextSong()"
           title="Next"
-        >▶|</button>
+        >
+          ▶|
+        </button>
 
+        <!-- Repeat -->
         <button
           [class.active-control]="repeatMode !== 'off'"
           (click)="toggleRepeat()"
@@ -166,7 +189,9 @@
 
       </div>
 
+      <!-- Progress -->
       <div class="progress-container">
+
         <span>{{ formatTime(currentTime) }}</span>
 
         <input
@@ -179,11 +204,14 @@
         />
 
         <span>{{ formatTime(duration) }}</span>
+
       </div>
 
     </div>
 
+    <!-- Volume -->
     <div class="volume-container">
+
       <span>🔊</span>
 
       <input
@@ -194,10 +222,12 @@
         [value]="volume"
         (input)="changeVolume($event)"
       />
+
     </div>
 
   </footer>
 
+  <!-- Audio Element -->
   <audio
     #audioPlayer
     preload="metadata"
