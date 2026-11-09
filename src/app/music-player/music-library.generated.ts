@@ -1,4 +1,3 @@
-
 // Automatically generated. Do not edit manually.
 
 export interface Song {
@@ -310,7 +309,7 @@ export const MUSIC_LIBRARY: Song[] =
     "title": "Achha_Lagta_Hain___Lyric_Video___Aarakshan___Saif_Ali_Khan,_Deepika___Mohit_Chauhan,_Shreya_Ghoshal(0)",
     "url": "assets/music/Achha_Lagta_Hain___Lyric_Video___Aarakshan___Saif_Ali_Khan%2C_Deepika___Mohit_Chauhan%2C_Shreya_Ghoshal(0).mp3"
   },
-{
+  {
     "id": 51,
     "artist": "Unknown Artist",
     "title": "Adaa__4K____Garam_Masala___Akshay_Kumar,_John_Abraham___Rimi_Sen,_Neha_Dhupia___Bad_Boys_Party_Songs(0)",
@@ -2103,5 +2102,101 @@ export const MUSIC_LIBRARY: Song[] =
     "artist": "Unknown Artist",
     "title": "बीडी_जलाइले_-_पूरा_वीडियो_गाना___विशाल_भारद्वाज___सुनिधी_चौहान,_सुखविंदर_सिंह___ओमकारा(0)",
     "url": "assets/music/%E0%A4%AC%E0%A5%80%E0%A4%A1%E0%A5%80_%E0%A4%9C%E0%A4%B2%E0%A4%BE%E0%A4%87%E0%A4%B2%E0%A5%87_-_%E0%A4%AA%E0%A5%82%E0%A4%B0%E0%A4%BE_%E0%A4%B5%E0%A5%80%E0%A4%A1%E0%A4%BF%E0%A4%AF%E0%A5%8B_%E0%A4%97%E0%A4%BE%E0%A4%A8%E0%A4%BE___%E0%A4%B5%E0%A4%BF%E0%A4%B6%E0%A4%BE%E0%A4%B2_%E0%A4%AD%E0%A4%BE%E0%A4%B0%E0%A4%A6%E0%A5%8D%E0%A4%B5%E0%A4%BE%E0%A4%9C___%E0%A4%B8%E0%A5%81%E0%A4%A8%E0%A4%BF%E0%A4%A7%E0%A5%80_%E0%A4%9A%E0%A5%8C%E0%A4%B9%E0%A4%BE%E0%A4%A8%2C_%E0%A4%B8%E0%A5%81%E0%A4%96%E0%A4%B5%E0%A4%BF%E0%A4%82%E0%A4%A6%E0%A4%B0_%E0%A4%B8%E0%A4%BF%E0%A4%82%E0%A4%B9___%E0%A4%93%E0%A4%AE%E0%A4%95%E0%A4%BE%E0%A4%B0%E0%A4%BE(0).mp3"
+  },
+  {
+    "id": 350,
+    "artist": "Unknown Artist",
+    "title": "Ararara | Mulshi Pattern | Pravin Tarde | Adarsh Shinde | Narendra Bhide | Pranit Kulkarni - (320 Kbps)",
+    "url": "assets/music/Ararara%20%7C%20Mulshi%20Pattern%20%7C%20Pravin%20Tarde%20%7C%20Adarsh%20Shinde%20%7C%20Narendra%20Bhide%20%7C%20Pranit%20Kulkarni%20-%20%28320%20Kbps%29.mp3"
+  },
+  {
+    "id": 351,
+    "artist": "Unknown Artist",
+    "title": "Ban Than Chali Bolo 4K Video Song | Superhit Hindi Song | Sukhwinder Singh, Sunidhi Chauhan - (320 Kbps)",
+    "url": "assets/music/Ban%20Than%20Chali%20Bolo%204K%20Video%20Song%20%7C%20Superhit%20Hindi%20Song%20%7C%20Sukhwinder%20Singh%2C%20Sunidhi%20Chauhan%20-%20%28320%20Kbps%29.mp3"
+  },
+  {
+    "id": 352,
+    "artist": "Unknown Artist",
+    "title": "Dil Tera De De Mujhe Mera Dadla | Vaishali Samant  | Full Song - (320 Kbps)",
+    "url": "assets/music/Dil%20Tera%20De%20De%20Mujhe%20Mera%20Dadla%20%7C%20Vaishali%20Samant%20%20%7C%20Full%20Song%20-%20%28320%20Kbps%29.mp3"
+  },
+  {
+    "id": 353,
+    "artist": "Unknown Artist",
+    "title": "Khabardar - Dil Ko Diya - Marathi Song - Bharat Jadhav, Sanjay Narvekar, Nitrmiti Sawant - (320 Kbps)",
+    "url": "assets/music/Khabardar%20-%20Dil%20Ko%20Diya%20-%20Marathi%20Song%20-%20Bharat%20Jadhav%2C%20Sanjay%20Narvekar%2C%20Nitrmiti%20Sawant%20-%20%28320%20Kbps%29.mp3"
+  },
+  {
+    "id": 354,
+    "artist": "Unknown Artist",
+    "title": "Lyrical_ Mala Jau De | Ferrari Ki Sawaari | Vidya Balan | Urmila Dhangar | Pritam - (256 Kbps)",
+    "url": "assets/music/Lyrical_%20Mala%20Jau%20De%20%7C%20Ferrari%20Ki%20Sawaari%20%7C%20Vidya%20Balan%20%7C%20Urmila%20Dhangar%20%7C%20Pritam%20-%20%28256%20Kbps%29.mp3"
+  },
+  {
+    "id": 355,
+    "artist": "Unknown Artist",
+    "title": "Prajakta Shukre - Ithun Dhakka - (320 Kbps)",
+    "url": "assets/music/Prajakta%20Shukre%20-%20Ithun%20Dhakka%20-%20%28320%20Kbps%29.mp3"
+  },
+  {
+    "id": 356,
+    "artist": "Unknown Artist",
+    "title": "Vaishali Samant & Anand Shinde - Turururu Chalu Nako - (320 Kbps)",
+    "url": "assets/music/Vaishali%20Samant%20%26%20Anand%20Shinde%20-%20Turururu%20Chalu%20Nako%20-%20%28320%20Kbps%29.mp3"
+  },
+  {
+    "id": 357,
+    "artist": "Unknown Artist",
+    "title": "Ye Naa Gade Official Video | Hunterrr | Gulshan Devaiah, Radhika Apte & Sai Tamhankar - (320 Kbps)",
+    "url": "assets/music/Ye%20Naa%20Gade%20Official%20Video%20%7C%20Hunterrr%20%7C%20Gulshan%20Devaiah%2C%20Radhika%20Apte%20%26%20Sai%20Tamhankar%20-%20%28320%20Kbps%29.mp3"
+  },
+  {
+    "id": 358,
+    "artist": "Unknown Artist",
+    "title": "Zapun Zapun | No Entry Pudhe Dhoka Aahe | Sai Tamhankar | Ankush Chaudhari | Bharat Jadhav - (256 Kbps)",
+    "url": "assets/music/Zapun%20Zapun%20%7C%20No%20Entry%20Pudhe%20Dhoka%20Aahe%20%7C%20Sai%20Tamhankar%20%7C%20Ankush%20Chaudhari%20%7C%20Bharat%20Jadhav%20-%20%28256%20Kbps%29.mp3"
+  },
+  {
+    "id": 359,
+    "artist": "Unknown Artist",
+    "title": "Patil Aala | Zenda | Vaishali Samant | Sagarika Music Marathi - (320 Kbps)",
+    "url": "assets/music/Patil%20Aala%20%7C%20Zenda%20%7C%20Vaishali%20Samant%20%7C%20Sagarika%20Music%20Marathi%20-%20%28320%20Kbps%29.mp3"
+  },
+  {
+    "id": 360,
+    "artist": "Unknown Artist",
+    "title": "Popat Pisaatla - Shinma | Anand Shinde & Kavita Raam | Ganesh Acharya & Gurleen Chopra - (256 Kbps)",
+    "url": "assets/music/Popat%20Pisaatla%20-%20Shinma%20%7C%20Anand%20Shinde%20%26%20Kavita%20Raam%20%7C%20Ganesh%20Acharya%20%26%20Gurleen%20Chopra%20-%20%28256%20Kbps%29.mp3"
+  },
+  {
+    "id": 361,
+    "artist": "Unknown Artist",
+    "title": "Vaishali Samant - Cham Cham Karta - (320 Kbps)",
+    "url": "assets/music/Vaishali%20Samant%20-%20Cham%20Cham%20Karta%20-%20%28320%20Kbps%29.mp3"
+  },
+  {
+    "id": 362,
+    "artist": "Unknown Artist",
+    "title": "Vinchoo Chawla (विंचू चावला)  Official Music Video | Shaswati | Dance Song - (320 Kbps)",
+    "url": "assets/music/Vinchoo%20Chawla%20%28%E0%A4%B5%E0%A4%BF%E0%A4%82%E0%A4%9A%E0%A5%82%20%E0%A4%9A%E0%A4%BE%E0%A4%B5%E0%A4%B2%E0%A4%BE%29%20%20Official%20Music%20Video%20%7C%20Shaswati%20%7C%20Dance%20Song%20-%20%28320%20Kbps%29.mp3"
+  },
+  {
+    "id": 363,
+    "artist": "Unknown Artist",
+    "title": "Zingaat with English Subtitles | Sairat | Rinku Rajguru & Akash Thosar | Ajay Atul - (320 Kbps)",
+    "url": "assets/music/Zingaat%20with%20English%20Subtitles%20%7C%20Sairat%20%7C%20Rinku%20Rajguru%20%26%20Akash%20Thosar%20%7C%20Ajay%20Atul%20-%20%28320%20Kbps%29.mp3"
+  },
+  {
+    "id": 364,
+    "artist": "Unknown Artist",
+    "title": "Halu Halu Chaal Meri Madhubala Bosco & Caesar Avadhoot Gupte Sagarika Music Marathi",
+    "url": "assets/music/Halu%20Halu%20Chaal%20Meri%20Madhubala%20Bosco%20%26%20Caesar%20Avadhoot%20Gupte%20Sagarika%20Music%20Marathi.mp3"
+  },
+  {
+    "id": 365,
+    "artist": "Unknown Artist",
+    "title": "Ye Go Ye Ye Maina",
+    "url": "assets/music/Ye%20Go%20Ye%20Ye%20Maina.mp3"
   }
 ];
