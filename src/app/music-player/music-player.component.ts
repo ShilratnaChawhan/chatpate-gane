@@ -4,6 +4,7 @@ import {
   ElementRef,
   ViewChild,
   AfterViewInit,
+  OnInit,
   OnDestroy
 } from '@angular/core';
 
@@ -26,7 +27,7 @@ import {
   styleUrls: ['./music-player.component.css']
 })
 export class MusicPlayerComponent
-  implements AfterViewInit, OnDestroy {
+  implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild('audioPlayer')
   audioPlayer!: ElementRef<HTMLAudioElement>;
@@ -50,23 +51,36 @@ export class MusicPlayerComponent
 
   errorMessage = '';
 
-  ngAfterViewInit(): void {
-    this.audioPlayer.nativeElement.volume = this.volume;
+  autoplayBlocked = false;
+
+  private destroyed = false;
+
+  ngOnInit(): void {
+    // Prepare initial song selection.
+    // Actual autoplay is attempted after the audio element initializes.
   }
 
+  ngAfterViewInit(): void {
+
+    const audio = this.audioPlayer.nativeElement;
+
+    audio.volume = this.volume;
+
+    // Attempt autoplay after component initialization.
+    this.autoPlayMusic();
+
+  }
+
+  // Current song index
   get currentIndex(): number {
+
     return this.songs.findIndex(
       song => song.id === this.currentSong?.id
     );
+
   }
 
-  get progress(): number {
-    if (!this.duration) return 0;
-
-    return (this.currentTime / this.duration) * 100;
-  }
-
-  // Search songs
+  // Search
   filterSongs(): void {
 
     const search = this.searchText
@@ -80,12 +94,40 @@ export class MusicPlayerComponent
 
   }
 
+  // Automatic playback attempt
+  async autoPlayMusic(): Promise<void> {
+
+    if (!this.songs.length || this.destroyed) return;
+
+    let song: Song;
+
+    if (this.isShuffle && this.songs.length > 1) {
+
+      const index = Math.floor(
+        Math.random() * this.songs.length
+      );
+
+      song = this.songs[index];
+
+    } else {
+
+      song = this.songs[0];
+
+    }
+
+    await this.playSong(song);
+
+  }
+
   // Play selected song
   async playSong(song: Song): Promise<void> {
 
     if (!song || !song.url) {
-      this.errorMessage = 'Invalid song or MP3 URL.';
+
+      this.errorMessage = 'Invalid MP3 file path.';
+
       return;
+
     }
 
     const audio = this.audioPlayer.nativeElement;
@@ -93,9 +135,12 @@ export class MusicPlayerComponent
     this.currentSong = song;
 
     this.currentTime = 0;
+
     this.duration = 0;
 
     this.errorMessage = '';
+
+    this.autoplayBlocked = false;
 
     audio.pause();
 
@@ -113,60 +158,55 @@ export class MusicPlayerComponent
 
     } catch (error) {
 
-      console.error('Playback error:', error);
+      console.warn('Autoplay or playback blocked:', error);
 
       this.isPlaying = false;
 
+      this.autoplayBlocked = true;
+
       this.errorMessage =
-        'Unable to play this song. Check the MP3 file path.';
+        'Playback requires your interaction. Tap Play Music.';
 
     }
 
   }
 
-  // Hero play button
+  // Hero button
   async playMusic(): Promise<void> {
 
     if (!this.songs.length) return;
 
     if (this.isPlaying) {
+
       await this.togglePlay();
+
       return;
+
     }
 
     if (!this.currentSong) {
 
-      if (this.isShuffle && this.songs.length > 1) {
-
-        const randomIndex = Math.floor(
-          Math.random() * this.songs.length
-        );
-
-        await this.playSong(this.songs[randomIndex]);
-
-      } else {
-
-        await this.playSong(this.songs[0]);
-
-      }
+      await this.autoPlayMusic();
 
       return;
+
     }
 
     await this.togglePlay();
 
   }
 
-  // Play/Pause
+  // Play / Pause
   async togglePlay(): Promise<void> {
 
     const audio = this.audioPlayer.nativeElement;
 
     if (!this.currentSong) {
 
-      await this.playMusic();
+      await this.autoPlayMusic();
 
       return;
+
     }
 
     if (audio.paused) {
@@ -176,16 +216,21 @@ export class MusicPlayerComponent
         await audio.play();
 
         this.isPlaying = true;
+
+        this.autoplayBlocked = false;
+
         this.errorMessage = '';
 
       } catch (error) {
 
-        console.error('Play error:', error);
+        console.error('Playback failed:', error);
 
         this.isPlaying = false;
 
+        this.autoplayBlocked = true;
+
         this.errorMessage =
-          'Unable to start audio playback.';
+          'Unable to play audio. Check the MP3 file.';
 
       }
 
@@ -204,29 +249,27 @@ export class MusicPlayerComponent
 
     this.isShuffle = !this.isShuffle;
 
-    if (!this.isShuffle) return;
+    if (!this.isShuffle || !this.songs.length) return;
 
-    if (this.songs.length === 0) return;
+    if (this.songs.length === 1) {
 
-    let randomIndex = Math.floor(
-      Math.random() * this.songs.length
-    );
-
-    if (this.songs.length > 1) {
-
-      while (
-        this.songs[randomIndex].id === this.currentSong?.id
-      ) {
-
-        randomIndex = Math.floor(
-          Math.random() * this.songs.length
-        );
-
+      if (!this.currentSong) {
+        await this.playSong(this.songs[0]);
       }
+
+      return;
 
     }
 
-    await this.playSong(this.songs[randomIndex]);
+    const availableSongs = this.songs.filter(
+      song => song.id !== this.currentSong?.id
+    );
+
+    const randomSong = availableSongs[
+      Math.floor(Math.random() * availableSongs.length)
+    ];
+
+    await this.playSong(randomSong);
 
   }
 
@@ -304,7 +347,7 @@ export class MusicPlayerComponent
 
   }
 
-  // Song ended
+  // Ended event
   async onSongEnded(): Promise<void> {
 
     if (this.repeatMode === 'one' && this.currentSong) {
@@ -333,7 +376,7 @@ export class MusicPlayerComponent
 
   }
 
-  // Repeat mode
+  // Repeat
   toggleRepeat(): void {
 
     if (this.repeatMode === 'off') {
@@ -352,16 +395,31 @@ export class MusicPlayerComponent
 
   }
 
-  // Update progress
-  updateTime(): void {
+  // Audio play event
+  onAudioPlay(): void {
 
-    const audio = this.audioPlayer.nativeElement;
+    this.isPlaying = true;
 
-    this.currentTime = audio.currentTime;
+    this.autoplayBlocked = false;
 
   }
 
-  // Update duration
+  // Audio pause event
+  onAudioPause(): void {
+
+    this.isPlaying = false;
+
+  }
+
+  // Time update
+  updateTime(): void {
+
+    this.currentTime =
+      this.audioPlayer.nativeElement.currentTime;
+
+  }
+
+  // Duration update
   updateDuration(): void {
 
     const audio = this.audioPlayer.nativeElement;
@@ -372,7 +430,7 @@ export class MusicPlayerComponent
 
   }
 
-  // Seek song
+  // Seek
   seek(event: Event): void {
 
     const input = event.target as HTMLInputElement;
@@ -414,7 +472,7 @@ export class MusicPlayerComponent
     this.isPlaying = false;
 
     this.errorMessage =
-      'Audio could not load. Check the MP3 file path and format.';
+      'Audio could not load. Check your MP3 file path.';
 
   }
 
@@ -442,6 +500,8 @@ export class MusicPlayerComponent
 
   // Cleanup
   ngOnDestroy(): void {
+
+    this.destroyed = true;
 
     if (this.audioPlayer?.nativeElement) {
 
