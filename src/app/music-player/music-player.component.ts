@@ -61,7 +61,7 @@ export class MusicPlayerComponent implements OnDestroy {
   // 15 = 15 seconds
   // 30 = 30 seconds
 
-  skipIntroSeconds = 5;
+  skipIntroSeconds = 0;
 
   // =====================================
   // AUTO NEXT SETTINGS
