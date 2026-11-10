@@ -74,9 +74,11 @@ export class MusicPlayerComponent implements OnDestroy {
   // AUTO NEXT SETTINGS
   // =====================================
 
-  // 0 = Full Song
-  // 30 = 30 seconds
-  // 60 = 1 minute
+  // Auto Next is based on TOTAL SONG TIME.
+  //
+  // 0   = Full Song
+  // 30  = 30 seconds
+  // 60  = 1 minute
   // 120 = 2 minutes
   // 180 = 3 minutes
   // 300 = 5 minutes
@@ -87,16 +89,12 @@ export class MusicPlayerComponent implements OnDestroy {
   // PLAYBACK CONTROL VARIABLES
   // =====================================
 
-  // Actual position where playback starts
-  // after Intro Skip.
-
-  private currentSongStartTime = 0;
-
   // Prevent duplicate next-song operations.
 
   private isAdvancing = false;
 
-  // Prevent duplicate Auto Next triggers.
+  // Prevent Auto Next from triggering
+  // more than once for the same song.
 
   private autoNextTriggered = false;
 
@@ -236,15 +234,13 @@ export class MusicPlayerComponent implements OnDestroy {
 
     this.duration = 0;
 
-    this.currentSongStartTime = 0;
-
     this.autoNextTriggered = false;
+
+    this.isPlaying = false;
 
     this.errorMessage = '';
 
     this.autoplayBlocked = false;
-
-    this.isPlaying = false;
 
     // Set new audio source.
 
@@ -278,7 +274,7 @@ export class MusicPlayerComponent implements OnDestroy {
         : 0;
 
       // =====================================
-      // APPLY INTRO SKIP
+      // INTRO SKIP
       // =====================================
 
       const skipTime = Math.min(
@@ -289,18 +285,15 @@ export class MusicPlayerComponent implements OnDestroy {
 
       );
 
-      // Start from the intro skip position.
+      // Start song after Intro Skip.
 
       audio.currentTime = skipTime;
 
       this.currentTime = skipTime;
 
       // IMPORTANT:
-      // Auto Next timer starts from this position.
-
-      this.currentSongStartTime = skipTime;
-
-      // Reset Auto Next for every new song.
+      // Auto Next uses total song position.
+      // Do not add Intro Skip duration.
 
       this.autoNextTriggered = false;
 
@@ -322,6 +315,11 @@ export class MusicPlayerComponent implements OnDestroy {
       }
 
       this.isPlaying = true;
+
+      // Check immediately in case the selected
+      // Intro Skip is already beyond Auto Next.
+
+      this.checkAutoNext();
 
     } catch (error) {
 
@@ -403,6 +401,8 @@ export class MusicPlayerComponent implements OnDestroy {
         this.autoplayBlocked = false;
 
         this.errorMessage = '';
+
+        this.checkAutoNext();
 
       } catch (error) {
 
@@ -528,7 +528,10 @@ export class MusicPlayerComponent implements OnDestroy {
 
       // Play next song.
 
-      if (nextIndex >= 0 && this.songs[nextIndex]) {
+      if (
+        nextIndex >= 0 &&
+        this.songs[nextIndex]
+      ) {
 
         await this.playSong(
           this.songs[nextIndex]
@@ -571,9 +574,9 @@ export class MusicPlayerComponent implements OnDestroy {
 
       this.currentTime = target;
 
-      this.currentSongStartTime = target;
-
       this.autoNextTriggered = false;
+
+      this.checkAutoNext();
 
       return;
 
@@ -614,7 +617,7 @@ export class MusicPlayerComponent implements OnDestroy {
 
     }
 
-    // Skip only when still inside intro.
+    // Skip only when still inside selected intro.
 
     if (
       audio.currentTime < this.skipIntroSeconds
@@ -632,15 +635,14 @@ export class MusicPlayerComponent implements OnDestroy {
 
       this.currentTime = target;
 
-      // Reset timer from the new playback position.
-
-      this.currentSongStartTime = target;
+      // Do not add intro time to Auto Next.
+      // Auto Next always checks audio.currentTime.
 
       this.autoNextTriggered = false;
 
     }
 
-    // Check Auto Next after changing intro settings.
+    // Check Auto Next after changing Intro Skip.
 
     this.checkAutoNext();
 
@@ -654,7 +656,10 @@ export class MusicPlayerComponent implements OnDestroy {
 
     if (this.destroyed) return;
 
-    // Immediately check the new duration.
+    // Reset trigger so the newly selected
+    // duration is checked immediately.
+
+    this.autoNextTriggered = false;
 
     this.checkAutoNext();
 
@@ -689,27 +694,40 @@ export class MusicPlayerComponent implements OnDestroy {
     const audio = this.audioPlayer.nativeElement;
 
     if (
+
       audio.paused ||
+
       audio.seeking ||
+
       audio.readyState < HTMLMediaElement.HAVE_METADATA
+
     ) {
 
       return;
 
     }
 
-    // Calculate time played AFTER intro skip.
-
-    const playedDuration =
-      audio.currentTime - this.currentSongStartTime;
-
-    // Check selected Auto Next duration.
+    // =====================================
+    // IMPORTANT FIX
+    // =====================================
+    //
+    // Compare directly with total song time.
+    //
+    // Example:
+    // Intro Skip = 20 seconds
+    // Auto Next  = 30 seconds
+    //
+    // At 00:20 -> continue playing
+    // At 00:30 -> play next song
+    //
+    // Do NOT calculate:
+    // 20 + 30 = 50 seconds.
 
     if (
-      playedDuration >= this.autoNextDuration
+      audio.currentTime >= this.autoNextDuration
     ) {
 
-      // Prevent multiple triggers.
+      // Prevent duplicate execution.
 
       this.autoNextTriggered = true;
 
@@ -731,7 +749,7 @@ export class MusicPlayerComponent implements OnDestroy {
 
     this.currentTime = audio.currentTime;
 
-    // Check Auto Next.
+    // Check Auto Next on every time update.
 
     this.checkAutoNext();
 
@@ -839,6 +857,11 @@ export class MusicPlayerComponent implements OnDestroy {
     audio.currentTime = Number(input.value);
 
     this.currentTime = audio.currentTime;
+
+    // Seeking beyond Auto Next position
+    // will trigger Auto Next on the next check.
+
+    this.checkAutoNext();
 
   }
 
