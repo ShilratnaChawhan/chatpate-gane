@@ -1,8 +1,9 @@
 
 <div class="music-app">
 
-  <!-- Sidebar -->
+  <!-- SIDEBAR -->
   <aside class="sidebar">
+
     <div class="brand">
       <span class="brand-icon">♫</span>
       <span>Chatpate Gane</span>
@@ -15,14 +16,18 @@
       All Songs
     </div>
 
-    <div class="library-count">{{ songs.length }} tracks</div>
+    <div class="library-count">
+      {{ songs.length }} tracks
+    </div>
+
   </aside>
 
-  <!-- Main Content -->
+  <!-- MAIN CONTENT -->
   <main class="main-content">
 
-    <!-- Header -->
+    <!-- HEADER -->
     <header class="top-header">
+
       <div>
         <h1>Chatpate Gane</h1>
         <p>Your music, your mood.</p>
@@ -35,108 +40,187 @@
         [(ngModel)]="searchText"
         (ngModelChange)="filterSongs()"
       />
+
     </header>
 
-    <!-- Hero -->
+    <!-- HERO SECTION -->
     <section class="hero">
+
       <div class="hero-content">
-        <span class="hero-label">YOUR MUSIC COLLECTION</span>
-        <h2>Feel the Music.<br />Live the Moment.</h2>
-        <p>Enjoy your favourite songs anytime, anywhere.</p>
+
+        <span class="hero-label">
+          YOUR MUSIC COLLECTION
+        </span>
+
+        <h2>
+          Feel the Music.<br />
+          Live the Moment.
+        </h2>
+
+        <p>
+          Enjoy your favourite songs anytime, anywhere.
+        </p>
 
         <button
           class="hero-button"
-          (click)="playMusic()"
+          (click)="playSong(songs[0])"
           [disabled]="songs.length === 0"
         >
           ▶ Play Music
         </button>
+
       </div>
 
       <div class="hero-note">♫</div>
+
     </section>
 
-    <!-- Playback Settings -->
+    <!-- PLAYBACK SETTINGS -->
     <section class="settings-section">
 
-      <div class="settings-title">
-        <div>
-          <h2>Playback Settings</h2>
-          <p>Customize your listening experience</p>
-        </div>
-        <span class="settings-title-icon">⚙</span>
+      <div class="config-badge">
+        Playback configuration
       </div>
 
-      <div class="settings-grid">
+      <div class="config-grid">
 
-        <!-- Skip Intro Card -->
-        <div class="setting-card">
+        <!-- SKIP INTRO -->
+        <div class="config-item">
 
-          <div class="setting-card-top">
-            <div class="setting-icon skip-intro-icon">⏭</div>
+          <div class="config-icon skip-icon">
 
-            <div class="setting-info">
-              <strong>Skip Intro</strong>
-              <small>Automatically skip the beginning</small>
-            </div>
+            <svg viewBox="0 0 32 32" fill="none">
+              <path
+                d="M5 5L20 16L5 27V5Z"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linejoin="round"
+              />
+
+              <path
+                d="M26 5V27"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+              />
+            </svg>
+
           </div>
 
-          <div class="setting-card-bottom">
-            <span class="setting-label">Skip duration</span>
+          <h3>Skip Intro</h3>
 
-            <select
-              class="setting-select"
-              [(ngModel)]="skipIntroSeconds"
-              (ngModelChange)="applyIntroSkip()"
-              aria-label="Skip intro duration"
-            >
-              <option [ngValue]="0">Off</option>
-              <option [ngValue]="5">5 seconds</option>
-              <option [ngValue]="10">10 seconds</option>
-              <option [ngValue]="15">15 seconds</option>
-              <option [ngValue]="20">20 seconds</option>
-              <option [ngValue]="30">30 seconds</option>
-            </select>
+          <div class="config-value">
+            {{ skipIntroSeconds === 0 ? 'Off' : skipIntroSeconds + ' sec' }}
           </div>
+
+          <p>Every new song</p>
+
+          <select
+            class="setting-select"
+            [(ngModel)]="skipIntroSeconds"
+            (ngModelChange)="applyIntroSkip()"
+            aria-label="Skip intro duration"
+          >
+            <option [ngValue]="0">Off</option>
+            <option [ngValue]="5">5 seconds</option>
+            <option [ngValue]="10">10 seconds</option>
+            <option [ngValue]="15">15 seconds</option>
+            <option [ngValue]="20">20 seconds</option>
+            <option [ngValue]="30">30 seconds</option>
+          </select>
 
         </div>
 
-        <!-- Auto Next Card -->
-        <div class="setting-card">
+        <!-- AUTO NEXT -->
+        <div class="config-item">
 
-          <div class="setting-card-top">
-            <div class="setting-icon auto-next-icon">◷</div>
+          <div class="config-icon next-icon">
 
-            <div class="setting-info">
-              <strong>Auto Next</strong>
-              <small>Automatically play the next song</small>
-            </div>
+            <svg viewBox="0 0 32 32" fill="none">
+              <path
+                d="M5 8H21"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+              />
+
+              <path
+                d="M5 16H17"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+              />
+
+              <path
+                d="M5 24H13"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+              />
+
+              <path
+                d="M25 12V24"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+              />
+
+              <circle
+                cx="23"
+                cy="24"
+                r="3"
+                stroke="currentColor"
+                stroke-width="2.5"
+              />
+            </svg>
+
           </div>
 
-          <div class="setting-card-bottom">
-            <span class="setting-label">Play duration</span>
+          <h3>Auto Next</h3>
 
-            <select
-              class="setting-select"
-              [(ngModel)]="autoNextDuration"
-              (ngModelChange)="applyAutoNext()"
-              aria-label="Auto next duration"
-            >
-              <option [ngValue]="0">Full song</option>
-              <option [ngValue]="30">30 seconds</option>
-              <option [ngValue]="60">1 minute</option>
-              <option [ngValue]="120">2 minutes</option>
-              <option [ngValue]="180">3 minutes</option>
-              <option [ngValue]="300">5 minutes</option>
-            </select>
+          <div class="config-value">
+            {{
+              autoNextDuration === 0
+                ? 'Full'
+                : autoNextDuration === 30
+                  ? '30 sec'
+                  : autoNextDuration === 60
+                    ? '1 min'
+                    : autoNextDuration === 120
+                      ? '2 min'
+                      : autoNextDuration === 180
+                        ? '3 min'
+                        : autoNextDuration === 300
+                          ? '5 min'
+                          : formatTime(autoNextDuration)
+            }}
           </div>
+
+          <p>After intro skip</p>
+
+          <select
+            class="setting-select"
+            [(ngModel)]="autoNextDuration"
+            (ngModelChange)="applyAutoNext()"
+            aria-label="Auto next duration"
+          >
+            <option [ngValue]="0">Full song</option>
+            <option [ngValue]="30">30 seconds</option>
+            <option [ngValue]="60">1 minute</option>
+            <option [ngValue]="120">2 minutes</option>
+            <option [ngValue]="180">3 minutes</option>
+            <option [ngValue]="300">5 minutes</option>
+          </select>
 
         </div>
 
       </div>
 
+      <!-- SETTINGS STATUS -->
       <div class="settings-status">
+
         <span class="status-dot"></span>
+
         <span>
           Intro:
           <strong>
@@ -152,11 +236,12 @@
             {{ autoNextDuration === 0 ? 'Full song' : formatTime(autoNextDuration) }}
           </strong>
         </span>
+
       </div>
 
     </section>
 
-    <!-- Songs -->
+    <!-- SONGS SECTION -->
     <section class="songs-section">
 
       <div class="section-heading">
@@ -179,7 +264,10 @@
       >
 
         <span class="song-number">
-          <span *ngIf="currentSong?.id !== song.id || !isPlaying">
+
+          <span
+            *ngIf="currentSong?.id !== song.id || !isPlaying"
+          >
             {{ i + 1 }}
           </span>
 
@@ -189,16 +277,22 @@
           >
             ♪
           </span>
+
         </span>
 
         <div class="song-name">
           <strong>{{ song.title }}</strong>
-          <small *ngIf="currentSong?.id === song.id && isPlaying">
+
+          <small
+            *ngIf="currentSong?.id === song.id && isPlaying"
+          >
             Now Playing
           </small>
         </div>
 
-        <span class="artist-name">{{ song.artist }}</span>
+        <span class="artist-name">
+          {{ song.artist }}
+        </span>
 
         <button
           class="row-play"
@@ -210,8 +304,11 @@
 
       </div>
 
-      <!-- Empty State -->
-      <div class="empty-state" *ngIf="filteredSongs.length === 0">
+      <!-- EMPTY STATE -->
+      <div
+        class="empty-state"
+        *ngIf="filteredSongs.length === 0"
+      >
         <div class="empty-icon">♫</div>
         <h3>No songs found</h3>
         <p>Try searching with another song name.</p>
@@ -219,26 +316,39 @@
 
     </section>
 
-    <!-- Error -->
-    <div class="error-message" *ngIf="errorMessage">
+    <!-- ERROR MESSAGE -->
+    <div
+      class="error-message"
+      *ngIf="errorMessage"
+    >
       {{ errorMessage }}
     </div>
 
   </main>
 
-  <!-- Bottom Player -->
+  <!-- BOTTOM MUSIC PLAYER -->
   <footer class="player-bar">
 
+    <!-- CURRENT SONG -->
     <div class="now-playing">
+
       <div class="music-icon">♫</div>
 
       <div class="now-playing-text">
-        <strong>{{ currentSong?.title || 'No song selected' }}</strong>
-        <small>{{ currentSong?.artist || 'Select a song to play' }}</small>
+
+        <strong>
+          {{ currentSong?.title || 'No song selected' }}
+        </strong>
+
+        <small>
+          {{ currentSong?.artist || 'Select a song to play' }}
+        </small>
+
       </div>
+
     </div>
 
-    <!-- Controls -->
+    <!-- PLAYER CONTROLS -->
     <div class="player-controls">
 
       <div class="control-buttons">
@@ -251,7 +361,12 @@
           ⤨
         </button>
 
-        <button (click)="previousSong()" title="Previous">|◀</button>
+        <button
+          (click)="previousSong()"
+          title="Previous"
+        >
+          |◀
+        </button>
 
         <button
           class="main-play"
@@ -262,7 +377,12 @@
           {{ isPlaying ? 'Ⅱ' : '▶' }}
         </button>
 
-        <button (click)="nextSong()" title="Next">▶|</button>
+        <button
+          (click)="nextSong()"
+          title="Next"
+        >
+          ▶|
+        </button>
 
         <button
           [class.active-control]="repeatMode !== 'off'"
@@ -274,8 +394,9 @@
 
       </div>
 
-      <!-- Progress -->
+      <!-- PROGRESS BAR -->
       <div class="progress-container">
+
         <span>{{ formatTime(currentTime) }}</span>
 
         <input
@@ -289,12 +410,14 @@
         />
 
         <span>{{ formatTime(duration) }}</span>
+
       </div>
 
     </div>
 
-    <!-- Volume -->
+    <!-- VOLUME -->
     <div class="volume-container">
+
       <span>🔊</span>
 
       <input
@@ -306,11 +429,12 @@
         (input)="changeVolume($event)"
         aria-label="Volume"
       />
+
     </div>
 
   </footer>
 
-  <!-- Audio -->
+  <!-- AUDIO ELEMENT -->
   <audio
     #audioPlayer
     preload="auto"
