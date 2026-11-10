@@ -61,14 +61,18 @@
           Enjoy your favourite songs anytime, anywhere.
         </p>
 
-        <button
+                <button
           class="hero-button"
           (click)="playMusic()"
           [disabled]="songs.length === 0"
         >
-          ▶ Play Music
+          {{ isPlaying ? 'Ⅱ Pause' : '▶ Play Music' }}
         </button>
 
+        <p *ngIf="autoplayBlocked" class="autoplay-message">
+          Tap Play Music to start listening.
+        </p>
+        
       </div>
 
       <div class="hero-note">♫</div>
