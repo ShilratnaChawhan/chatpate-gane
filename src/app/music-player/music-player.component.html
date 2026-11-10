@@ -90,6 +90,7 @@
           <div class="config-icon skip-icon">
 
             <svg viewBox="0 0 32 32" fill="none">
+
               <path
                 d="M5 5L20 16L5 27V5Z"
                 stroke="currentColor"
@@ -103,6 +104,7 @@
                 stroke-width="2.5"
                 stroke-linecap="round"
               />
+
             </svg>
 
           </div>
@@ -110,11 +112,13 @@
           <h3>Skip Intro</h3>
 
           <div class="config-value">
+
             {{
               skipIntroSeconds === 0
                 ? 'Off'
                 : skipIntroSeconds + ' sec'
             }}
+
           </div>
 
           <p>Every new song</p>
@@ -125,12 +129,14 @@
             (ngModelChange)="applyIntroSkip()"
             aria-label="Skip intro duration"
           >
+
             <option [ngValue]="0">Off</option>
             <option [ngValue]="5">5 seconds</option>
             <option [ngValue]="10">10 seconds</option>
             <option [ngValue]="15">15 seconds</option>
             <option [ngValue]="20">20 seconds</option>
             <option [ngValue]="30">30 seconds</option>
+
           </select>
 
         </div>
@@ -204,7 +210,7 @@
 
           </div>
 
-          <p>After intro skip</p>
+          <p>At selected song time</p>
 
           <select
             class="setting-select"
@@ -336,11 +342,13 @@
           (click)="playSong(song); $event.stopPropagation()"
           [attr.aria-label]="'Play ' + song.title"
         >
+
           {{
             currentSong?.id === song.id && isPlaying
               ? 'Ⅱ'
               : '▶'
           }}
+
         </button>
 
       </div>
@@ -444,9 +452,7 @@
       <!-- PROGRESS BAR -->
       <div class="progress-container">
 
-        <span>
-          {{ formatTime(currentTime) }}
-        </span>
+        <span>{{ formatTime(currentTime) }}</span>
 
         <input
           type="range"
@@ -458,9 +464,7 @@
           aria-label="Song progress"
         />
 
-        <span>
-          {{ formatTime(duration) }}
-        </span>
+        <span>{{ formatTime(duration) }}</span>
 
       </div>
 
