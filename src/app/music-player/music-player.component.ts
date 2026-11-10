@@ -29,15 +29,22 @@ export class MusicPlayerComponent implements OnDestroy {
   @ViewChild('audioPlayer')
   audioPlayer!: ElementRef<HTMLAudioElement>;
 
-  // Music library
+  // =====================================
+  // MUSIC LIBRARY
+  // =====================================
+
   songs: Song[] = [...MUSIC_LIBRARY];
 
   filteredSongs: Song[] = [...MUSIC_LIBRARY];
 
   currentSong: Song | null = null;
 
-  // Player states
+  // =====================================
+  // PLAYER STATES
+  // =====================================
+
   isPlaying = false;
+
   isShuffle = false;
 
   repeatMode: 'off' | 'all' | 'one' = 'off';
@@ -45,10 +52,13 @@ export class MusicPlayerComponent implements OnDestroy {
   searchText = '';
 
   currentTime = 0;
+
   duration = 0;
+
   volume = 0.8;
 
   errorMessage = '';
+
   autoplayBlocked = false;
 
   // =====================================
@@ -56,10 +66,7 @@ export class MusicPlayerComponent implements OnDestroy {
   // =====================================
 
   // 0 = Off
-  // 5 = 5 seconds
-  // 10 = 10 seconds
-  // 15 = 15 seconds
-  // 30 = 30 seconds
+  // 5, 10, 15, 20, 30 = Seconds
 
   skipIntroSeconds = 0;
 
@@ -76,19 +83,35 @@ export class MusicPlayerComponent implements OnDestroy {
 
   autoNextDuration = 0;
 
-  // Position at which current playback started
+  // =====================================
+  // PLAYBACK CONTROL VARIABLES
+  // =====================================
+
+  // Actual position where playback starts
+  // after Intro Skip.
+
   private currentSongStartTime = 0;
 
-  // Prevent duplicate next-song operations
+  // Prevent duplicate next-song operations.
+
   private isAdvancing = false;
 
-  // Prevent outdated song loading operations
+  // Prevent duplicate Auto Next triggers.
+
+  private autoNextTriggered = false;
+
+  // Prevent outdated song loading operations.
+
   private loadRequestId = 0;
 
-  // Prevent operations after destruction
+  // Prevent operations after destruction.
+
   private destroyed = false;
 
-  // Current song index
+  // =====================================
+  // CURRENT SONG INDEX
+  // =====================================
+
   get currentIndex(): number {
 
     return this.songs.findIndex(
@@ -108,8 +131,11 @@ export class MusicPlayerComponent implements OnDestroy {
       .trim();
 
     this.filteredSongs = this.songs.filter(song =>
+
       song.title.toLowerCase().includes(search) ||
+
       song.artist.toLowerCase().includes(search)
+
     );
 
   }
@@ -200,6 +226,8 @@ export class MusicPlayerComponent implements OnDestroy {
 
     const requestId = ++this.loadRequestId;
 
+    // Stop previous song.
+
     audio.pause();
 
     this.currentSong = song;
@@ -210,11 +238,16 @@ export class MusicPlayerComponent implements OnDestroy {
 
     this.currentSongStartTime = 0;
 
+    this.autoNextTriggered = false;
+
     this.errorMessage = '';
 
     this.autoplayBlocked = false;
 
-    // Set song source
+    this.isPlaying = false;
+
+    // Set new audio source.
+
     audio.src = song.url;
 
     audio.volume = this.volume;
@@ -225,36 +258,56 @@ export class MusicPlayerComponent implements OnDestroy {
 
     try {
 
-      // Wait until MP3 metadata is ready
+      // Wait for MP3 metadata.
+
       await metadataPromise;
 
-      // Ignore outdated requests
+      // Ignore outdated requests.
+
       if (
         this.destroyed ||
         requestId !== this.loadRequestId
       ) {
+
         return;
+
       }
 
       this.duration = Number.isFinite(audio.duration)
         ? audio.duration
         : 0;
 
-      // Calculate intro skip
+      // =====================================
+      // APPLY INTRO SKIP
+      // =====================================
+
       const skipTime = Math.min(
+
         this.skipIntroSeconds,
+
         Math.max(0, audio.duration - 0.5)
+
       );
 
-      // Start song after selected intro duration
+      // Start from the intro skip position.
+
       audio.currentTime = skipTime;
 
       this.currentTime = skipTime;
 
-      // Store actual starting position
+      // IMPORTANT:
+      // Auto Next timer starts from this position.
+
       this.currentSongStartTime = skipTime;
 
-      // Start playback
+      // Reset Auto Next for every new song.
+
+      this.autoNextTriggered = false;
+
+      // =====================================
+      // START PLAYBACK
+      // =====================================
+
       await audio.play();
 
       if (
@@ -273,7 +326,9 @@ export class MusicPlayerComponent implements OnDestroy {
     } catch (error) {
 
       if (requestId !== this.loadRequestId) {
+
         return;
+
       }
 
       console.error('Playback failed:', error);
@@ -412,7 +467,10 @@ export class MusicPlayerComponent implements OnDestroy {
 
       let nextIndex: number;
 
-      // Shuffle enabled
+      // =====================================
+      // SHUFFLE MODE
+      // =====================================
+
       if (
         this.isShuffle &&
         this.songs.length > 1
@@ -432,21 +490,25 @@ export class MusicPlayerComponent implements OnDestroy {
 
       } else {
 
-        // Normal next song
+        // =====================================
+        // NORMAL NEXT SONG
+        // =====================================
+
         nextIndex = this.currentIndex + 1;
 
-        // Reached last song
+        // Reached last song.
+
         if (nextIndex >= this.songs.length) {
 
-          // Repeat all songs
+          // Repeat all songs.
+
           if (this.repeatMode === 'all') {
 
             nextIndex = 0;
 
           } else {
 
-            // IMPORTANT FIX:
-            // Stop audio when playlist finishes.
+            // Stop after last song.
 
             const audio = this.audioPlayer.nativeElement;
 
@@ -464,10 +526,15 @@ export class MusicPlayerComponent implements OnDestroy {
 
       }
 
-      // Play next song
-      await this.playSong(
-        this.songs[nextIndex]
-      );
+      // Play next song.
+
+      if (nextIndex >= 0 && this.songs[nextIndex]) {
+
+        await this.playSong(
+          this.songs[nextIndex]
+        );
+
+      }
 
     } finally {
 
@@ -487,11 +554,17 @@ export class MusicPlayerComponent implements OnDestroy {
 
     const audio = this.audioPlayer.nativeElement;
 
+    // Restart current song if already played
+    // for more than 3 seconds.
+
     if (audio.currentTime > 3) {
 
       const target = Math.min(
+
         this.skipIntroSeconds,
+
         Math.max(0, audio.duration - 0.5)
+
       );
 
       audio.currentTime = target;
@@ -499,6 +572,8 @@ export class MusicPlayerComponent implements OnDestroy {
       this.currentTime = target;
 
       this.currentSongStartTime = target;
+
+      this.autoNextTriggered = false;
 
       return;
 
@@ -539,51 +614,108 @@ export class MusicPlayerComponent implements OnDestroy {
 
     }
 
-    // Change position only if still inside intro
+    // Skip only when still inside intro.
+
     if (
       audio.currentTime < this.skipIntroSeconds
     ) {
 
       const target = Math.min(
+
         this.skipIntroSeconds,
+
         Math.max(0, audio.duration - 0.5)
+
       );
 
       audio.currentTime = target;
 
       this.currentTime = target;
 
+      // Reset timer from the new playback position.
+
       this.currentSongStartTime = target;
 
+      this.autoNextTriggered = false;
+
     }
+
+    // Check Auto Next after changing intro settings.
+
+    this.checkAutoNext();
 
   }
 
   // =====================================
-  // AUTO NEXT
+  // APPLY AUTO NEXT SETTINGS
   // =====================================
 
   applyAutoNext(): void {
 
     if (this.destroyed) return;
 
+    // Immediately check the new duration.
+
+    this.checkAutoNext();
+
+  }
+
+  // =====================================
+  // AUTO NEXT CHECK
+  // =====================================
+
+  private checkAutoNext(): void {
+
     if (
-      this.autoNextDuration > 0 &&
-      this.isPlaying &&
-      this.currentSong
+
+      this.destroyed ||
+
+      !this.currentSong ||
+
+      !this.isPlaying ||
+
+      this.autoNextDuration <= 0 ||
+
+      this.isAdvancing ||
+
+      this.autoNextTriggered
+
     ) {
 
-      const audio = this.audioPlayer.nativeElement;
+      return;
 
-      const nextPosition =
-        this.currentSongStartTime +
-        this.autoNextDuration;
+    }
 
-      if (audio.currentTime >= nextPosition) {
+    const audio = this.audioPlayer.nativeElement;
 
-        void this.nextSong();
+    if (
+      audio.paused ||
+      audio.seeking ||
+      audio.readyState < HTMLMediaElement.HAVE_METADATA
+    ) {
 
-      }
+      return;
+
+    }
+
+    // Calculate time played AFTER intro skip.
+
+    const playedDuration =
+      audio.currentTime - this.currentSongStartTime;
+
+    // Check selected Auto Next duration.
+
+    if (
+      playedDuration >= this.autoNextDuration
+    ) {
+
+      // Prevent multiple triggers.
+
+      this.autoNextTriggered = true;
+
+      // Automatically play next song.
+
+      void this.nextSong();
 
     }
 
@@ -599,31 +731,9 @@ export class MusicPlayerComponent implements OnDestroy {
 
     this.currentTime = audio.currentTime;
 
-    // Auto Next disabled
-    if (
-      this.autoNextDuration <= 0 ||
-      !this.isPlaying ||
-      this.isAdvancing ||
-      !this.currentSong
-    ) {
+    // Check Auto Next.
 
-      return;
-
-    }
-
-    // Calculate next song position
-    const nextPosition =
-      this.currentSongStartTime +
-      this.autoNextDuration;
-
-    // Automatically move to next song
-    if (
-      audio.currentTime >= nextPosition
-    ) {
-
-      void this.nextSong();
-
-    }
+    this.checkAutoNext();
 
   }
 
@@ -635,7 +745,8 @@ export class MusicPlayerComponent implements OnDestroy {
 
     if (this.destroyed) return;
 
-    // Repeat current song
+    // Repeat current song.
+
     if (
       this.repeatMode === 'one' &&
       this.currentSong
@@ -649,7 +760,8 @@ export class MusicPlayerComponent implements OnDestroy {
 
     }
 
-    // Automatically play next song
+    // Automatically play next song.
+
     await this.nextSong();
 
   }
