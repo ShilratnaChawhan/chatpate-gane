@@ -63,7 +63,7 @@
 
         <button
           class="hero-button"
-          (click)="playSong(songs[0])"
+          (click)="playMusic()"
           [disabled]="songs.length === 0"
         >
           ▶ Play Music
@@ -110,7 +110,11 @@
           <h3>Skip Intro</h3>
 
           <div class="config-value">
-            {{ skipIntroSeconds === 0 ? 'Off' : skipIntroSeconds + ' sec' }}
+            {{
+              skipIntroSeconds === 0
+                ? 'Off'
+                : skipIntroSeconds + ' sec'
+            }}
           </div>
 
           <p>Every new song</p>
@@ -137,6 +141,7 @@
           <div class="config-icon next-icon">
 
             <svg viewBox="0 0 32 32" fill="none">
+
               <path
                 d="M5 8H21"
                 stroke="currentColor"
@@ -172,6 +177,7 @@
                 stroke="currentColor"
                 stroke-width="2.5"
               />
+
             </svg>
 
           </div>
@@ -179,6 +185,7 @@
           <h3>Auto Next</h3>
 
           <div class="config-value">
+
             {{
               autoNextDuration === 0
                 ? 'Full'
@@ -194,6 +201,7 @@
                           ? '5 min'
                           : formatTime(autoNextDuration)
             }}
+
           </div>
 
           <p>After intro skip</p>
@@ -204,12 +212,14 @@
             (ngModelChange)="applyAutoNext()"
             aria-label="Auto next duration"
           >
+
             <option [ngValue]="0">Full song</option>
             <option [ngValue]="30">30 seconds</option>
             <option [ngValue]="60">1 minute</option>
             <option [ngValue]="120">2 minutes</option>
             <option [ngValue]="180">3 minutes</option>
             <option [ngValue]="300">5 minutes</option>
+
           </select>
 
         </div>
@@ -224,7 +234,11 @@
         <span>
           Intro:
           <strong>
-            {{ skipIntroSeconds === 0 ? 'Off' : skipIntroSeconds + ' sec' }}
+            {{
+              skipIntroSeconds === 0
+                ? 'Off'
+                : skipIntroSeconds + ' sec'
+            }}
           </strong>
         </span>
 
@@ -233,7 +247,11 @@
         <span>
           Auto Next:
           <strong>
-            {{ autoNextDuration === 0 ? 'Full song' : formatTime(autoNextDuration) }}
+            {{
+              autoNextDuration === 0
+                ? 'Full song'
+                : formatTime(autoNextDuration)
+            }}
           </strong>
         </span>
 
@@ -245,20 +263,31 @@
     <section class="songs-section">
 
       <div class="section-heading">
+
         <h2>All Songs</h2>
-        <span>{{ filteredSongs.length }} tracks</span>
+
+        <span>
+          {{ filteredSongs.length }} tracks
+        </span>
+
       </div>
 
       <div class="song-header">
+
         <span>#</span>
         <span>TITLE</span>
         <span>ARTIST</span>
         <span></span>
+
       </div>
 
       <div
         class="song-row"
-        *ngFor="let song of filteredSongs; let i = index; trackBy: trackById"
+        *ngFor="
+          let song of filteredSongs;
+          let i = index;
+          trackBy: trackById
+        "
         [class.selected]="currentSong?.id === song.id"
         (click)="playSong(song)"
       >
@@ -266,14 +295,18 @@
         <span class="song-number">
 
           <span
-            *ngIf="currentSong?.id !== song.id || !isPlaying"
+            *ngIf="
+              currentSong?.id !== song.id || !isPlaying
+            "
           >
             {{ i + 1 }}
           </span>
 
           <span
             class="playing-indicator"
-            *ngIf="currentSong?.id === song.id && isPlaying"
+            *ngIf="
+              currentSong?.id === song.id && isPlaying
+            "
           >
             ♪
           </span>
@@ -281,13 +314,17 @@
         </span>
 
         <div class="song-name">
+
           <strong>{{ song.title }}</strong>
 
           <small
-            *ngIf="currentSong?.id === song.id && isPlaying"
+            *ngIf="
+              currentSong?.id === song.id && isPlaying
+            "
           >
             Now Playing
           </small>
+
         </div>
 
         <span class="artist-name">
@@ -299,7 +336,11 @@
           (click)="playSong(song); $event.stopPropagation()"
           [attr.aria-label]="'Play ' + song.title"
         >
-          {{ currentSong?.id === song.id && isPlaying ? 'Ⅱ' : '▶' }}
+          {{
+            currentSong?.id === song.id && isPlaying
+              ? 'Ⅱ'
+              : '▶'
+          }}
         </button>
 
       </div>
@@ -309,9 +350,15 @@
         class="empty-state"
         *ngIf="filteredSongs.length === 0"
       >
+
         <div class="empty-icon">♫</div>
+
         <h3>No songs found</h3>
-        <p>Try searching with another song name.</p>
+
+        <p>
+          Try searching with another song name.
+        </p>
+
       </div>
 
     </section>
@@ -397,7 +444,9 @@
       <!-- PROGRESS BAR -->
       <div class="progress-container">
 
-        <span>{{ formatTime(currentTime) }}</span>
+        <span>
+          {{ formatTime(currentTime) }}
+        </span>
 
         <input
           type="range"
@@ -409,7 +458,9 @@
           aria-label="Song progress"
         />
 
-        <span>{{ formatTime(duration) }}</span>
+        <span>
+          {{ formatTime(duration) }}
+        </span>
 
       </div>
 
