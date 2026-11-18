@@ -2562,8 +2562,8 @@ export const MUSIC_LIBRARY: Song[] =
   {
     "id": 426,
     "artist": "Unknown Artist",
-    "title": "Ek_Pal_Ka_Jeena_-_Kaho_Naa_Pyaar_Hai___Hrithik_Roshan___Ameesha_Patel___Lucky_Ali___Rajesh_Roshan(0)",
-    "url": "assets/music/Ek_Pal_Ka_Jeena_-_Kaho_Naa_Pyaar_Hai___Hrithik_Roshan___Ameesha_Patel___Lucky_Ali___Rajesh_Roshan(0).mp3"
+    "title": "Thumkeshwari",
+    "url": "assets/music/Thumkeshwari%20-%20Bhediya%20%20Varun%20Dhawan%2C%20Kriti%20S%2C%20Shraddha%20K%20%20Sachin-Jigar%2CRashmeet%2C%20Ash%20K%2C%20Amitabh%20B%20-%20Zee%20Music%20Company.mp3"
   },
   {
     "id": 427,
