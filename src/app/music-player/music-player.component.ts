@@ -138,6 +138,18 @@ export class MusicPlayerComponent implements OnDestroy {
     }
 
     value = decode(value);
+    
+    // Decode HTML hexadecimal entities
+    value = value.replace(
+    /&#x([0-9a-f]+);/gi,
+    (_, hex) => String.fromCodePoint(parseInt(hex, 16))
+    );
+
+    // Remove bitrate labels such as 256 Kbps and 320 Kbps
+    value = value.replace(
+    /\(?\s*\d+\s*kbps\s*\)?/gi,
+    ''
+    );
 
     // Remove leading filename separators, then cut off metadata sections
     // commonly separated from the real title by three or more underscores.
@@ -1012,22 +1024,6 @@ export class MusicPlayerComponent implements OnDestroy {
 
   }
 
-  // =====================================
-  // CLEAN SONG
-  // =====================================
-
-  cleanSongTitle(title: string): string {
-  return title
-    .replace(/\(\s*\d+\s*kbps\s*\)/gi, '')
-    .replace(/&#x([0-9a-f]+);/gi, (_, hex) =>
-      String.fromCodePoint(parseInt(hex, 16))
-    )
-    .replace(/&#(\d+);/g, (_, num) =>
-      String.fromCodePoint(parseInt(num, 10))
-    )
-    .replace(/\s+/g, ' ')
-    .trim();
-  }
   
   // =====================================
   // CLEANUP
