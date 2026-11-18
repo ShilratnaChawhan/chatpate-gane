@@ -1,4 +1,3 @@
-
 import {
   Component,
   ElementRef,
@@ -13,6 +12,12 @@ import {
   MUSIC_LIBRARY,
   Song
 } from './music-library.generated';
+
+// Song plus the extra info parsed from the file name.
+type PlayerSong = Song & {
+  movie: string;
+  searchText: string;
+};
 
 @Component({
   selector: 'app-music-player',
@@ -33,17 +38,29 @@ export class MusicPlayerComponent implements OnDestroy {
   // MUSIC LIBRARY
   // =====================================
 
-  // Normalize titles when loading the library. This also protects the UI
-  // if an older/generated library still contains underscores or file tags.
-  songs: Song[] = MUSIC_LIBRARY.map(song => ({
-    ...song,
-    title: this.cleanSongTitle(song.title, song.url),
-    artist: this.cleanArtist(song.artist)
-  }));
+  // Title, artist and movie are parsed from the raw title / file name
+  // (e.g. "(320 Kbps)Zingaat with English Subtitles | Sairat | Rinku Rajguru | Ajay Atul").
+  songs: PlayerSong[] = MUSIC_LIBRARY.map(song => {
 
-  filteredSongs: Song[] = [...this.songs];
+    const info = MusicPlayerComponent.parseSongInfo(
+      song.title,
+      song.artist,
+      song.url
+    );
 
-  currentSong: Song | null = null;
+    return {
+      ...song,
+      title: info.title,
+      artist: info.artist,
+      movie: info.movie,
+      searchText: `${info.title} ${info.artist} ${info.movie}`.toLowerCase()
+    };
+
+  });
+
+  filteredSongs: PlayerSong[] = [...this.songs];
+
+  currentSong: PlayerSong | null = null;
 
   // =====================================
   // PLAYER STATES
@@ -113,68 +130,207 @@ export class MusicPlayerComponent implements OnDestroy {
   private destroyed = false;
 
   // =====================================
-  // CLEAN SONG TITLES
+  // SONG INFO PARSING (TITLE / ARTIST / MOVIE)
   // =====================================
 
-  private cleanSongTitle(rawTitle: string, url: string): string {
+  // Words that are labels, not artist or movie names.
+  private static readonly LABEL_PART =
+    /^(?:hit\s+songs?|super\s*hit.*|full\s+songs?|dance\s+songs?|video\s+songs?|official.*|lyrical.*|lyric.*|audio.*|songs?|marathi|hindi|.*\b(?:music|records|series|films|entertainment|label|official)\b.*)$/i;
 
-    const decode = (value: string): string => {
-      try {
-        return decodeURIComponent(value.replace(/\+/g, ' '));
-      } catch {
-        return value;
-      }
-    };
+  // Video / song labels that follow the real title.
+  private static readonly TITLE_LABEL =
+    /\s+(?:(?:19|20)\d{2}\s+)?(?:(?:4k|8k|hd|full\s*hd)\s+)?(?:video[-\s]?audio|video\s+song|full\s+lyric(?:al)?\s+video|lyric(?:al)?\s+video|official\s+(?:music\s+)?(?:video|audio)|full\s+(?:hd\s+)?video|full\s+song|music\s+video|hd\s+video|with\s+english\s+subtitles|restored\s+and\s+remastered)\b(.*)$/i;
 
-    // Prefer the MP3 filename when the stored title is still a raw filename.
-    const storedTitle = (rawTitle || '').trim();
-    const titleNeedsCleaning = /[_\\]|%[0-9a-f]{2}|\(\d+k?\)$/i.test(storedTitle);
-
-    let value = storedTitle;
-
-    if (titleNeedsCleaning && url) {
-      const filename = url.split('/').pop() || '';
-      value = decode(filename.replace(/\.mp3$/i, ''));
+  private static decode(value: string): string {
+    try {
+      return decodeURIComponent(value.replace(/\+/g, ' '));
+    } catch {
+      return value;
     }
-
-    value = decode(value);
-
-    // Remove leading filename separators, then cut off metadata sections
-    // commonly separated from the real title by three or more underscores.
-    value = value.replace(/^[_\s]+/, '');
-    value = value.split(/_{3,}/)[0];
-
-    // Convert remaining filename separators into normal spaces.
-    value = value.replace(/_/g, ' ');
-
-    // Remove common download / encoding suffixes and video labels.
-    value = value
-      .replace(/\s*\((?:\d+k?|official|audio|video)\)\s*$/i, '')
-      .replace(/\s*\[(?:full song|lyrical video|lyrics?|official video|video song|audio)\]\s*/gi, ' ')
-      .replace(/\s*[-–—]?\s*(?:full song|lyrical video|lyric video|official video|official audio|video song|hd video|4k video|8k video).*$/i, '')
-      .replace(/\s+/g, ' ')
-      .replace(/^[-_\s]+|[-_\s]+$/g, '')
-      .trim();
-
-    // If the cleanup unexpectedly empties the title, retain the original.
-    return value || storedTitle || 'Unknown Title';
-
   }
 
-  private cleanArtist(rawArtist: string): string {
-
-    const artist = (rawArtist || '')
-      .replace(/&#x([0-9a-f]+);/gi, (_match, hex) =>
+  private static decodeEntities(value: string): string {
+    return value
+      .replace(/&#x([0-9a-f]+);/gi, (_m, hex) =>
         String.fromCodePoint(parseInt(hex, 16))
       )
-      .replace(/&#(\d+);/g, (_match, decimal) =>
-        String.fromCodePoint(parseInt(decimal, 10))
+      .replace(/&#(\d+);/g, (_m, dec) =>
+        String.fromCodePoint(parseInt(dec, 10))
       )
-      .replace(/&amp;/gi, '&')
+      .replace(/&amp;/gi, '&');
+  }
+
+  private static isUnknownArtist(value: string): boolean {
+    return /^(?:|unknown(?:\s+artist)?|various(?:\s+artists?)?|n\/?a)$/i
+      .test(value.trim());
+  }
+
+  private static parseSongInfo(
+    rawTitle: string,
+    rawArtist: string,
+    url: string
+  ): { title: string; artist: string; movie: string } {
+
+    const decode = MusicPlayerComponent.decode;
+
+    const storedTitle = MusicPlayerComponent
+      .decodeEntities(decode((rawTitle || '').trim()));
+
+    const filename = decode(
+      (url || '').split('/').pop() || ''
+    ).replace(/\.mp3$/i, '');
+
+    // Choose the best source text.
+    let source = storedTitle;
+
+    if (
+      !source ||
+      /\.mp3$/i.test(source) ||
+      (!source.includes('|') && filename.includes('|'))
+    ) {
+      source = filename;
+    }
+
+    // Remove bitrate prefix: "(256 Kbps)", "(320 Kbps)", "[320kbps]".
+    source = source
+      .replace(/^\s*[\(\[]\s*\d+\s*k(?:bps)?\s*[\)\]]\s*/i, '')
+      .trim();
+
+    // Split into parts: "Title | Movie | Singer | Label".
+    const parts = source
+      .split(/\s*[|｜]\s*|_{3,}|\s+_+\s+/)
+      .map(part => part.trim())
+      .filter(part => part.length > 0);
+
+    let first = parts[0] || source;
+
+    // ---------- TITLE ----------
+
+    // Remove brackets containing non-English text: (विंचू चावला)
+    first = first.replace(
+      /\s*[\(\[][^)\]]*[^\x00-\x7F][^)\]]*[\)\]]/g,
+      ''
+    );
+
+    // Remove prefixes like "Lyrical_ ", "Lyrics - ".
+    first = first.replace(
+      /^(?:lyrical|lyrics?|full|video|audio)\s*[_:\-]+\s*/i,
+      ''
+    );
+
+    // Remove bracketed labels like "(Official)", "[Lyrics]".
+    first = first.replace(
+      /\s*[\(\[]\s*(?:\d+\s*k(?:bps)?|official[^)\]]*|audio|video|lyrics?|lyrical[^)\]]*|full song)\s*[\)\]]/gi,
+      ''
+    );
+
+    // Cut everything from the video label onwards and keep the tail
+    // (it may contain the artists or the movie name).
+    let tail = '';
+
+    const labelMatch = first.match(MusicPlayerComponent.TITLE_LABEL);
+
+    if (labelMatch) {
+      tail = labelMatch[1] || '';
+      first = first.replace(MusicPlayerComponent.TITLE_LABEL, '');
+    }
+
+    const title = first
+      .replace(/_/g, ' ')
+      .replace(/\s+/g, ' ')
+      .replace(/^[-–—,:\s]+|[-–—,:\s]+$/g, '')
+      .trim() || storedTitle || 'Unknown Title';
+
+    // ---------- ARTIST & MOVIE ----------
+
+    const cleanPart = (value: string): string =>
+      value
+        .replace(/\s*[\(\[][^)\]]*[\)\]]\s*/g, ' ')
+        .replace(/_/g, ' ')
+        .replace(/\s+/g, ' ')
+        .replace(/^[-–—,:\s]+|[-–—,:\s]+$/g, '')
+        .trim();
+
+    const rest = parts
+      .slice(1)
+      .map(cleanPart)
+      .filter(part =>
+        part.length > 0 &&
+        !MusicPlayerComponent.LABEL_PART.test(part)
+      );
+
+    let movie = '';
+    let artistParts: string[] = [];
+
+    if (rest.length >= 2) {
+
+      // "Title | Movie | Singer | Singer ..."
+      movie = rest[0];
+      artistParts = rest.slice(1);
+
+    } else if (rest.length === 1) {
+
+      // "Title | Singer | Label"
+      artistParts = rest;
+
+    }
+
+    // Fallback 1: comma list after the label,
+    // "... Full HD Video, Shahid K, Ayesha T, Tulip Joshi"
+    if (!artistParts.length && /^\s*,/.test(tail)) {
+
+      artistParts = tail
+        .split(',')
+        .map(cleanPart)
+        .filter(part => part.length > 0);
+
+    }
+
+    // Fallback 2: underscore tail,
+    // "... 4k Video-Audio _Restored and Remastered_Taarzan The Wonder Car songs"
+    if (!movie && tail && !/^\s*,/.test(tail)) {
+
+      const tailMovie = tail
+        .split(/_+/)
+        .map(cleanPart)
+        .filter(part =>
+          part.length > 0 &&
+          !/restored|remaster/i.test(part)
+        )
+        .map(part => part.replace(/\s+songs?$/i, '').trim())
+        .find(part => part.length > 0);
+
+      movie = tailMovie || '';
+
+    }
+
+    // Remove duplicates, keep at most 3 names.
+    const uniqueArtists = artistParts.filter(
+      (name, index) =>
+        artistParts.findIndex(
+          other => other.toLowerCase() === name.toLowerCase()
+        ) === index
+    ).slice(0, 3);
+
+    // Prefer an artist already stored in the library, if it is real.
+    const storedArtist = MusicPlayerComponent
+      .decodeEntities(rawArtist || '')
       .replace(/\s+/g, ' ')
       .trim();
 
-    return artist || 'Unknown Artist';
+    let artist: string;
+
+    if (!MusicPlayerComponent.isUnknownArtist(storedArtist)) {
+      artist = storedArtist;
+    } else if (uniqueArtists.length) {
+      artist = uniqueArtists.join(', ');
+    } else if (movie) {
+      artist = movie;
+    } else {
+      artist = 'Unknown Artist';
+    }
+
+    return { title, artist, movie };
 
   }
 
@@ -200,12 +356,9 @@ export class MusicPlayerComponent implements OnDestroy {
       .toLowerCase()
       .trim();
 
+    // Searches title, artist and movie name.
     this.filteredSongs = this.songs.filter(song =>
-
-      song.title.toLowerCase().includes(search) ||
-
-      song.artist.toLowerCase().includes(search)
-
+      song.searchText.includes(search)
     );
 
   }
@@ -280,7 +433,7 @@ export class MusicPlayerComponent implements OnDestroy {
   // PLAY SELECTED SONG
   // =====================================
 
-  async playSong(song: Song): Promise<void> {
+  async playSong(song: PlayerSong): Promise<void> {
 
     if (this.destroyed) return;
 
@@ -779,10 +932,6 @@ export class MusicPlayerComponent implements OnDestroy {
 
     }
 
-    // =====================================
-    // IMPORTANT FIX
-    // =====================================
-    //
     // Compare directly with total song time.
     //
     // Example:
@@ -792,8 +941,7 @@ export class MusicPlayerComponent implements OnDestroy {
     // At 00:20 -> continue playing
     // At 00:30 -> play next song
     //
-    // Do NOT calculate:
-    // 20 + 30 = 50 seconds.
+    // Do NOT calculate: 20 + 30 = 50 seconds.
 
     if (
       audio.currentTime >= this.autoNextDuration
@@ -1006,7 +1154,7 @@ export class MusicPlayerComponent implements OnDestroy {
   // TRACK BY ID
   // =====================================
 
-  trackById(index: number, song: Song): number {
+  trackById(index: number, song: PlayerSong): number {
 
     return song.id;
 
