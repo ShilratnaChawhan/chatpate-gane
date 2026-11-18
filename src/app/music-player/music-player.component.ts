@@ -37,7 +37,7 @@ export class MusicPlayerComponent implements OnDestroy {
   // if an older/generated library still contains underscores or file tags.
   songs: Song[] = MUSIC_LIBRARY.map(song => ({
     ...song,
-    title: this.cleanSongTitle(this.cleanSongTitle(song.title), song.url),
+    title: this.cleanSongTitle(song.title, song.url),
     artist: this.cleanArtist(song.artist)
   }));
 
