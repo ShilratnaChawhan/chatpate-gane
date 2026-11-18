@@ -33,9 +33,15 @@ export class MusicPlayerComponent implements OnDestroy {
   // MUSIC LIBRARY
   // =====================================
 
-  songs: Song[] = [...MUSIC_LIBRARY];
+  // Normalize titles when loading the library. This also protects the UI
+  // if an older/generated library still contains underscores or file tags.
+  songs: Song[] = MUSIC_LIBRARY.map(song => ({
+    ...song,
+    title: this.cleanSongTitle(song.title, song.url),
+    artist: this.cleanArtist(song.artist)
+  }));
 
-  filteredSongs: Song[] = [...MUSIC_LIBRARY];
+  filteredSongs: Song[] = [...this.songs];
 
   currentSong: Song | null = null;
 
@@ -105,6 +111,72 @@ export class MusicPlayerComponent implements OnDestroy {
   // Prevent operations after destruction.
 
   private destroyed = false;
+
+  // =====================================
+  // CLEAN SONG TITLES
+  // =====================================
+
+  private cleanSongTitle(rawTitle: string, url: string): string {
+
+    const decode = (value: string): string => {
+      try {
+        return decodeURIComponent(value.replace(/\+/g, ' '));
+      } catch {
+        return value;
+      }
+    };
+
+    // Prefer the MP3 filename when the stored title is still a raw filename.
+    const storedTitle = (rawTitle || '').trim();
+    const titleNeedsCleaning = /[_\\]|%[0-9a-f]{2}|\(\d+k?\)$/i.test(storedTitle);
+
+    let value = storedTitle;
+
+    if (titleNeedsCleaning && url) {
+      const filename = url.split('/').pop() || '';
+      value = decode(filename.replace(/\.mp3$/i, ''));
+    }
+
+    value = decode(value);
+
+    // Remove leading filename separators, then cut off metadata sections
+    // commonly separated from the real title by three or more underscores.
+    value = value.replace(/^[_\s]+/, '');
+    value = value.split(/_{3,}/)[0];
+
+    // Convert remaining filename separators into normal spaces.
+    value = value.replace(/_/g, ' ');
+
+    // Remove common download / encoding suffixes and video labels.
+    value = value
+      .replace(/\s*\((?:\d+k?|official|audio|video)\)\s*$/i, '')
+      .replace(/\s*\[(?:full song|lyrical video|lyrics?|official video|video song|audio)\]\s*/gi, ' ')
+      .replace(/\s*[-–—]?\s*(?:full song|lyrical video|lyric video|official video|official audio|video song|hd video|4k video|8k video).*$/i, '')
+      .replace(/\s+/g, ' ')
+      .replace(/^[-_\s]+|[-_\s]+$/g, '')
+      .trim();
+
+    // If the cleanup unexpectedly empties the title, retain the original.
+    return value || storedTitle || 'Unknown Title';
+
+  }
+
+  private cleanArtist(rawArtist: string): string {
+
+    const artist = (rawArtist || '')
+      .replace(/&#x([0-9a-f]+);/gi, (_match, hex) =>
+        String.fromCodePoint(parseInt(hex, 16))
+      )
+      .replace(/&#(\d+);/g, (_match, decimal) =>
+        String.fromCodePoint(parseInt(decimal, 10))
+      )
+      .replace(/&amp;/gi, '&')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    return artist || 'Unknown Artist';
+
+  }
 
   // =====================================
   // CURRENT SONG INDEX
