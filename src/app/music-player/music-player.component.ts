@@ -1,4 +1,4 @@
-
+import { FormsModule } from '@angular/forms';
 import {
   Component,
   ElementRef,
@@ -17,6 +17,7 @@ interface Song {
 
 @Component({
   selector: 'app-music-player',
+  imports: [CommonModule, FormsModule],
   templateUrl: './music-player.component.html',
   styleUrls: ['./music-player.component.css']
 })
