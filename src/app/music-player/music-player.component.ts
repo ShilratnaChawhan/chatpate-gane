@@ -116,62 +116,70 @@ export class MusicPlayerComponent implements OnDestroy {
   // CLEAN SONG TITLES
   // =====================================
 
+
   private cleanSongTitle(rawTitle: string, url: string): string {
 
-    const decode = (value: string): string => {
-      try {
-        return decodeURIComponent(value.replace(/\+/g, ' '));
-      } catch {
-        return value;
-      }
-    };
-
-    // Prefer the MP3 filename when the stored title is still a raw filename.
-    const storedTitle = (rawTitle || '').trim();
-    const titleNeedsCleaning = /[_\\]|%[0-9a-f]{2}|\(\d+k?\)$/i.test(storedTitle);
-
-    let value = storedTitle;
-
-    if (titleNeedsCleaning && url) {
-      const filename = url.split('/').pop() || '';
-      value = decode(filename.replace(/\.mp3$/i, ''));
+  const decode = (value: string): string => {
+    try {
+      return decodeURIComponent(value.replace(/\+/g, ' '));
+    } catch {
+      return value;
     }
+  };
 
-    value = decode(value);
-    
-    // Decode HTML hexadecimal entities
-    value = value.replace(
+  let value = (rawTitle || '').trim();
+
+  // Use filename if stored title contains raw filename formatting.
+  const titleNeedsCleaning =
+    /[_\\]|%[0-9a-f]{2}|\(\d+k?\)$/i.test(value);
+
+  if (titleNeedsCleaning && url) {
+    const filename = url.split('/').pop() || '';
+    value = decode(filename.replace(/\.mp3$/i, ''));
+  }
+
+  value = decode(value);
+
+  // Decode HTML hexadecimal entities.
+  value = value.replace(
     /&#x([0-9a-f]+);/gi,
     (_, hex) => String.fromCodePoint(parseInt(hex, 16))
-    );
+  );
 
-    // Remove bitrate labels such as 256 Kbps and 320 Kbps
-    value = value.replace(
+  // Decode HTML decimal entities.
+  value = value.replace(
+    /&#(\d+);/g,
+    (_, decimal) => String.fromCodePoint(parseInt(decimal, 10))
+  );
+
+  // Remove bitrate labels ANYWHERE in the title.
+  value = value.replace(
     /\(?\s*\d+\s*kbps\s*\)?/gi,
     ''
-    );
+  );
 
-    // Remove leading filename separators, then cut off metadata sections
-    // commonly separated from the real title by three or more underscores.
-    value = value.replace(/^[_\s]+/, '');
-    value = value.split(/_{3,}/)[0];
+  // Remove leading filename separators.
+  value = value.replace(/^[_\s]+/, '');
 
-    // Convert remaining filename separators into normal spaces.
-    value = value.replace(/_/g, ' ');
+  // Remove metadata after three or more underscores.
+  value = value.split(/_{3,}/)[0];
 
-    // Remove common download / encoding suffixes and video labels.
-    value = value
-      .replace(/\s*\((?:\d+k?|official|audio|video)\)\s*$/i, '')
-      .replace(/\s*\[(?:full song|lyrical video|lyrics?|official video|video song|audio)\]\s*/gi, ' ')
-      .replace(/\s*[-–—]?\s*(?:full song|lyrical video|lyric video|official video|official audio|video song|hd video|4k video|8k video).*$/i, '')
-      .replace(/\s+/g, ' ')
-      .replace(/^[-_\s]+|[-_\s]+$/g, '')
-      .trim();
+  // Convert underscores to spaces.
+  value = value.replace(/_/g, ' ');
 
-    // If the cleanup unexpectedly empties the title, retain the original.
-    return value || storedTitle || 'Unknown Title';
+  // Remove common suffixes and video labels.
+  value = value
+    .replace(/\s*\((?:\d+k?|official|audio|video)\)\s*$/i, '')
+    .replace(/\s*\[(?:full song|lyrical video|lyrics?|official video|video song|audio)\]\s*/gi, ' ')
+    .replace(/\s*[-–—]?\s*(?:full song|lyrical video|lyric video|official video|official audio|video song|hd video|4k video|8k video).*$/i, '')
+    .replace(/\s+/g, ' ')
+    .replace(/^[-_\s]+|[-_\s]+$/g, '')
+    .trim();
 
+  return value || rawTitle || 'Unknown Title';
+  
   }
+
 
   private cleanArtist(rawArtist: string): string {
 
