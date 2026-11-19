@@ -160,9 +160,27 @@ export class MusicPlayerComponent implements OnDestroy {
       .replace(/&amp;/gi, '&');
   }
 
+  // Removes "(320 Kbps)", "[320kbps]", "(256 Kbps)" etc. from anywhere in the text.
+  private static stripBitrate(value: string): string {
+    return (value || '')
+      .replace(/[\(\[]\s*\d+\s*k(?:bps|b)?\s*[\)\]]\s*/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
   private static isUnknownArtist(value: string): boolean {
     return /^(?:|unknown(?:\s+artist)?|various(?:\s+artists?)?|n\/?a)$/i
       .test(value.trim());
+  }
+
+  // True when the stored "artist" is really a raw title / file name.
+  private static looksLikeRawTitle(value: string): boolean {
+    return (
+      value.includes('|') ||
+      /\.mp3$/i.test(value) ||
+      /\b(?:video|full\s+song|full\s+hd|4k|8k|hd|subtitles|remastered|lyrical)\b/i
+        .test(value)
+    );
   }
 
   private static parseSongInfo(
@@ -172,13 +190,18 @@ export class MusicPlayerComponent implements OnDestroy {
   ): { title: string; artist: string; movie: string } {
 
     const decode = MusicPlayerComponent.decode;
+    const strip = MusicPlayerComponent.stripBitrate;
 
-    const storedTitle = MusicPlayerComponent
-      .decodeEntities(decode((rawTitle || '').trim()));
+    const storedTitle = strip(
+      MusicPlayerComponent
+        .decodeEntities(decode((rawTitle || '').trim()))
+    );
 
-    const filename = decode(
-      (url || '').split('/').pop() || ''
-    ).replace(/\.mp3$/i, '');
+    const filename = strip(
+      decode(
+        (url || '').split('/').pop() || ''
+      ).replace(/\.mp3$/i, '')
+    );
 
     // Choose the best source text.
     let source = storedTitle;
@@ -191,10 +214,8 @@ export class MusicPlayerComponent implements OnDestroy {
       source = filename;
     }
 
-    // Remove bitrate prefix: "(256 Kbps)", "(320 Kbps)", "[320kbps]".
-    source = source
-      .replace(/^\s*[\(\[]\s*\d+\s*k(?:bps)?\s*[\)\]]\s*/i, '')
-      .trim();
+    // Remove bitrate anywhere: "(256 Kbps)", "(320 Kbps)", "[320kbps]".
+    source = strip(source);
 
     // Split into parts: "Title | Movie | Singer | Label".
     const parts = source
@@ -312,22 +333,25 @@ export class MusicPlayerComponent implements OnDestroy {
         ) === index
     ).slice(0, 3);
 
-    // Prefer an artist already stored in the library, if it is real.
-    const storedArtist = MusicPlayerComponent
-      .decodeEntities(rawArtist || '')
-      .replace(/\s+/g, ' ')
-      .trim();
+    // Prefer an artist already stored in the library, if it is real
+    // (not empty, and not a raw file name with labels in it).
+    const storedArtist = strip(
+      MusicPlayerComponent.decodeEntities(rawArtist || '')
+    );
+
+    const storedIsUsable =
+      !MusicPlayerComponent.isUnknownArtist(storedArtist) &&
+      !MusicPlayerComponent.looksLikeRawTitle(storedArtist);
 
     let artist: string;
 
-    if (!MusicPlayerComponent.isUnknownArtist(storedArtist)) {
+    if (storedIsUsable) {
       artist = storedArtist;
     } else if (uniqueArtists.length) {
       artist = uniqueArtists.join(', ');
-    } else if (movie) {
-      artist = movie;
     } else {
-      artist = 'Unknown Artist';
+      // No real artist found: just show the song name.
+      artist = title;
     }
 
     return { title, artist, movie };
