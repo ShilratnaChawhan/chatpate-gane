@@ -1854,8 +1854,8 @@ export const MUSIC_LIBRARY: Song[] =
   {
     "id": 308,
     "artist": "Unknown Artist",
-    "title": "Tinku Jiya",
-    "url": "assets/music/Tinku_Jiya_-_Video_Song___Yamla_Pagla_Deewana___Mamta_Sharma___Javed_Ali___Dharmendra___Bobby_Deol(0).mp3"
+    "title": "Laal Ghaghra",
+    "url": "assets/music/Laal-Ghaghra-SnapYT.App.mp3"
   },
   {
     "id": 309,
